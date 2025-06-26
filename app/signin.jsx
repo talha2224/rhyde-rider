@@ -22,7 +22,7 @@ const Signin = () => {
     const [showPassword, setShowPassword] = useState(false);
 
     const handleSignIn = () => {
-        console.log('Signing in with:', email, password);
+        router.push("/home");
     };
 
     const handleForgotPassword = () => {

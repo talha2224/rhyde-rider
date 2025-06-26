@@ -20,7 +20,7 @@ const Emergency = () => {
     };
 
     const handleNext = () => {
-        router.push('/signin');
+        router.push("/home");
     };
 
     return (
@@ -38,7 +38,7 @@ const Emergency = () => {
                 <Text style={styles.title}>Who should we alert in an emergency?</Text>
                 <Text style={styles.description}>Add trusted contacts we can notify instantly in case of an emergency.</Text>
 
-                <View style={[styles.inputContainer,{marginBottom:15}]}>
+                <View style={[styles.inputContainer, { marginBottom: 15 }]}>
                     <TextInput style={styles.input} placeholder="Full Name" placeholderTextColor="#fff" keyboardType="default" value={fullName} onChangeText={setFullName} />
                 </View>
 

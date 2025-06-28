@@ -4,7 +4,6 @@ import { Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View 
 import carImg from '../../assets/images/home/car.png';
 import mapImg from '../../assets/images/home/map.png';
 import BottomNavbar from '../../components/BottomNavbar';
-import { getRandomDarkColor } from '../../hooks/generateColor';
 
 const Home = () => {
   return (
@@ -29,7 +28,7 @@ const Home = () => {
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.cardScroll}>
             {
               [1, 2, 3, 4]?.map((i) => (
-                <View key={i} style={[styles.rydeCard, { backgroundColor: getRandomDarkColor() }]}>
+                <View key={i} style={[styles.rydeCard, { backgroundColor: "#FBB73A" }]}>
                   <Image source={carImg} style={styles.rydeImage} />
                   <View style={styles.rydeDetails}>
                     <Text style={styles.rydeName}>Compact SUV</Text>

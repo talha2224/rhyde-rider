@@ -52,7 +52,7 @@ const Setting = () => {
             <AntDesign name="right" size={16} color="#AAA" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/language')}>
+          <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/home/profile/language')}>
             <View>
               <Text style={styles.menuItemTitle}>Language</Text>
               <Text style={styles.menuItemDescription}>Receive alert on updates</Text>
@@ -60,7 +60,7 @@ const Setting = () => {
             <AntDesign name="right" size={16} color="#AAA" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/emergency-contacts')}>
+          <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/home/profile/emergency')}>
             <View>
               <Text style={styles.menuItemTitle}>Emergency contact</Text>
               <Text style={styles.menuItemDescription}>Receive alert on payment activities</Text>

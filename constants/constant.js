@@ -1,4 +1,3 @@
-import { getRandomDarkColor } from "../hooks/generateColor";
 
 export const notificationsData = [
   {
@@ -187,7 +186,7 @@ export const rydesData = [
     distance: "10 Mins away",
     reviews: 120,
     price: "$34.60",
-    color: "#E2B300",
+    color: "#FBB73A",
   },
   {
     id: "2",
@@ -195,7 +194,7 @@ export const rydesData = [
     distance: "10 Mins away",
     reviews: 120,
     price: "$34.60",
-    color: getRandomDarkColor(),
+    color:  "#FBB73A",
   },
   {
     id: "3",
@@ -203,7 +202,7 @@ export const rydesData = [
     distance: "10 Mins away",
     reviews: 120,
     price: "$34.60",
-    color: getRandomDarkColor(),
+    color:  "#FBB73A",
   },
   {
     id: "4",
@@ -211,7 +210,7 @@ export const rydesData = [
     distance: "10 Mins away",
     reviews: 120,
     price: "$34.60",
-    color: getRandomDarkColor(),
+    color:  "#FBB73A",
   },
 ];
 

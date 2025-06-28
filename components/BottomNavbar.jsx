@@ -11,7 +11,7 @@ const BottomNavbar = () => {
     {link:"home/activities",name: 'Activities', icon: <Octicons name="checklist"  size={20} color="#918D8F" />, activeIcon: <Octicons name="checklist"  size={20} color="#FBB73A" /> },
     {link:"home/wallet",name: 'Wallet', icon: <MaterialCommunityIcons name="wallet" size={20} color="#918D8F" />, activeIcon: <MaterialCommunityIcons name="wallet" size={20} color="#FBB73A" /> },
     {link:"home/rewards",name: 'Rewards', icon: <MaterialCommunityIcons name="wallet" size={20} color="#918D8F" />, activeIcon: <MaterialCommunityIcons name="wallet" size={20} color="#FBB73A" /> },
-    {link:"home/profile",name: 'Profile', icon: <FontAwesome5 name="user" size={20} color="#918D8F" />, activeIcon: <FontAwesome5 name="user" size={20} color="#FBB73A" /> },
+    {link:"home/profile/profile",name: 'Profile', icon: <FontAwesome5 name="user" size={20} color="#918D8F" />, activeIcon: <FontAwesome5 name="user" size={20} color="#FBB73A" /> },
   ];
 
 

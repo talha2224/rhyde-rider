@@ -54,12 +54,33 @@ export default function RootLayout() {
     "home/deposit",
     "home/milestones",
     "home/mlm",
+    "home/chat",
+    "home/savedplaces",
+    "home/addaddress",
+    "home/booking/index",
+    "home/booking/activebooking",
+    "home/booking/cancelled",
+    "home/booking/feedback",
+    "home/booking/rate",
+    "home/booking/tip",
+    "home/profile/profile",
+    "home/profile/singleprofile",
+    "home/profile/notification",
+    "home/profile/setting",
+    "home/profile/language",
+    "home/profile/emergency",
+    "home/profile/paymentmethod",
+    "home/profile/addcard",
+    "home/profile/gift",
+    "home/profile/support",
+    "home/profile/subscription",
+    "home/profile/report",
     "+not-found",
   ];
 
   return (
     <ThemeProvider value={DarkTheme}>
-      <Stack screenOptions={{ headerShown: false, animation: "slide_from_right", animationTypeForReplace: "push",contentStyle: {backgroundColor: "rgb(1, 1, 1)",}, }}>
+      <Stack screenOptions={{ headerShown: false, animation: "slide_from_right", animationTypeForReplace: "push", contentStyle: { backgroundColor: "rgb(1, 1, 1)", }, }}>
         {screens.map((name) => (
           <Stack.Screen key={name} name={name} />
         ))}

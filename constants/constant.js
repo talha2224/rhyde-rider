@@ -1,3 +1,5 @@
+import { getRandomDarkColor } from "../hooks/generateColor";
+
 export const notificationsData = [
   {
     id: "1",
@@ -134,4 +136,125 @@ export const transactionsData = [
     time: "8:04 PM",
     amount: "$40.79",
   },
+];
+
+export const paymentMethods = [
+  { id: "1", name: "Paypal" },
+  { id: "2", name: "Credit card/ Debit" },
+  { id: "3", name: "Ryde Credits" },
+  { id: "4", name: "Maurice" }, // As per image
+];
+
+export const ryderOptions = [
+  {
+    id: "1",
+    name: "Saif",
+    avatar:
+      "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8cmFuZG9tJTIwcGVvcGxlfGVufDB8fDB8fHww",
+  },
+  {
+    id: "2",
+    name: "John Mikel",
+    avatar:
+      "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8cmFuZG9tJTIwcGVvcGxlfGVufDB8fDB8fHww",
+  },
+  {
+    id: "3",
+    name: "Justinah Christy",
+    avatar:
+      "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8cmFuZG9tJTIwcGVvcGxlfGVufDB8fDB8fHww",
+  },
+  {
+    id: "4",
+    name: "Maurice",
+    avatar:
+      "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8cmFuZG9tJTIwcGVvcGxlfGVufDB8fDB8fHww",
+  },
+];
+
+export const rideScheduleOptions = [
+  { id: "1", date: "Sat 12 April", time: "12 58 PM" },
+  { id: "2", date: "Sun 13 April", time: "12 59 AM" },
+  { id: "3", date: "Mon 14 April", time: "12 00 PM" },
+  { id: "4", date: "Tues 15 April", time: "12 01 PM" },
+  { id: "5", date: "Wed 16 April", time: "12 02 PM" },
+];
+
+export const rydesData = [
+  {
+    id: "1",
+    name: "XL Intercity",
+    distance: "10 Mins away",
+    reviews: 120,
+    price: "$34.60",
+    color: "#E2B300",
+  },
+  {
+    id: "2",
+    name: "Compact SUV",
+    distance: "10 Mins away",
+    reviews: 120,
+    price: "$34.60",
+    color: getRandomDarkColor(),
+  },
+  {
+    id: "3",
+    name: "Full-Size SUV",
+    distance: "10 Mins away",
+    reviews: 120,
+    price: "$34.60",
+    color: getRandomDarkColor(),
+  },
+  {
+    id: "4",
+    name: "Sport Car",
+    distance: "10 Mins away",
+    reviews: 120,
+    price: "$34.60",
+    color: getRandomDarkColor(),
+  },
+];
+
+export const driverDetails = {
+  name: "Wilson Ezekiel",
+  location: "Illinois, United States",
+  rating: 4.7,
+  rides: 359,
+  yearsOfExp: 5,
+  totalReviews: 205,
+  carModel: "Lexus Es350",
+  licenseNumber: "GR-34645-GHE",
+  seats: 2,
+  color: "Red",
+  arrivalTime: "5 Mins away",
+};
+
+export const rideDetails = {
+  pickup: "4517 Washington Ave. Manchester...",
+  destination: "2118 Thornridge Cir. Syracuse...",
+};
+
+export const priceConfirmationDetails = {
+  estimatedTime: "10 mins",
+  additionalFare: "$250",
+  totalFare: "$650",
+};
+
+export const BOOKING_STATES = {
+  AWAITING_DRIVER: "awaitingDriver",
+  DRIVER_ARRIVED: "driverArrived",
+  LIVE_TRACKING: "liveTracking",
+  ADD_STOP: "addStop",
+  PRICE_CONFIRMATION: "priceConfirmation",
+  STOP_ADDED: "stopAdded",
+  RYDE_COMPLETED: "rydeCompleted",
+};
+
+export const cancellationReasons = [
+  { id: "1", text: "I want to change details of this journey" },
+  { id: "2", text: "The driver took long than expected" },
+  { id: "3", text: "Wrong address" },
+  { id: "4", text: "I don't want the journey" },
+  { id: "5", text: "Driver denied coming to pickup" },
+  { id: "6", text: "Others" },
 ];

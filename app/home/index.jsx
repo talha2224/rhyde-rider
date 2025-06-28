@@ -68,7 +68,7 @@ const Home = () => {
             <MaterialCommunityIcons name="map-marker-outline" size={20} color="#FFD700" />
             <TextInput placeholder='Your destination' placeholderTextColor={"#fff"}style={{height:40,flex:1}}/>
           </View>
-          <TouchableOpacity style={styles.bookRydeButton}>
+          <TouchableOpacity onPress={()=>router.push("/home/booking")} style={styles.bookRydeButton}>
             <Text style={styles.bookRydeButtonText}>Book ryde</Text>
           </TouchableOpacity>
         </View>

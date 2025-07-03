@@ -6,14 +6,14 @@ const Milestones = () => {
   const milestoneLevels = [
     {
       level: 1,
-      title: 'Complete your first ride',
-      description: 'A welcome bonus of 10% off your next ride or a small credit added to their account.',
+      title: 'Complete your first ryde',
+      description: 'A welcome bonus of 10% off your next ryde or a small credit added to their account.',
       status: 'Claimed',
     },
     {
       level: 10,
       title: 'Complete 10 rides.',
-      description: 'A free ride credit up to a certain amount (like $10) or priority booking for peak times for a week.',
+      description: 'A free ryde credit up to a certain amount (like $10) or priority booking for peak times for a week.',
       status: 'Claimed',
     },
     {
@@ -25,7 +25,7 @@ const Milestones = () => {
     {
       level: 30,
       title: 'Complete 30 rides.',
-      description: 'A larger ride credit (like $20) or entry into a monthly drawing for a bigger prize, like a gift card or a special experience.',
+      description: 'A larger ryde credit (like $20) or entry into a monthly drawing for a bigger prize, like a gift card or a special experience.',
       status: 'Unlock',
     },
     {

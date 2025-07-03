@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 
 const Otp = () => {
-    const [otp, setOtp] = useState(['', '', '', '', '', '']);
+    const [otp, setOtp] = useState(['', '', '', '']);
 
     const inputRefs = useRef([]);
 

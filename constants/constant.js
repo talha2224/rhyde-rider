@@ -250,10 +250,10 @@ export const BOOKING_STATES = {
 };
 
 export const cancellationReasons = [
-  { id: "1", text: "I want to change details of this journey" },
+  { id: "1", text: "I want to change details of my ryde" },
   { id: "2", text: "The driver took long than expected" },
   { id: "3", text: "Wrong address" },
-  { id: "4", text: "I don't want the journey" },
+  { id: "4", text: "I don't want the ryde" },
   { id: "5", text: "Driver denied coming to pickup" },
   { id: "6", text: "Others" },
 ];

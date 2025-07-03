@@ -9,13 +9,13 @@ const Rewards = () => {
     {
       id: '1',
       icon: 'percent',
-      title: '10% OFF next ride',
+      title: '10% OFF next ryde',
       description: 'Complete your first ryde.',
     },
     {
       id: '2',
       icon: 'cash-usd-outline',
-      title: 'Up to $10 free ride',
+      title: 'Up to $10 free ryde',
       description: 'Complete 10 rides.',
     },
     {

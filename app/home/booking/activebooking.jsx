@@ -181,7 +181,7 @@ const ActiveBooking = () => {
             </TouchableOpacity>
             <TouchableOpacity
                 style={styles.secondaryActionButton}
-                onPress={() => setShowRydeCompletedModal(true)} // Simulate ride completion
+                onPress={() => setShowRydeCompletedModal(true)} // Simulate ryde completion
             >
                 <Text style={styles.secondaryActionButtonText}>Complete trip</Text>
             </TouchableOpacity>

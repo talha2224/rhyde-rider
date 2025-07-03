@@ -39,7 +39,7 @@ const Feedback = () => {
         <View style={styles.feedbackInfo}>
           <Image source={feedbackImg} style={styles.feedbackImage} />
           <Text style={styles.feedbackQuestion}>Tell us why you {'\n'}cancelled the ryde</Text>
-          <Text style={styles.feedbackHelperText}>Help us improve your experience by {'\n'}letting us know the reason for {'\n'}cancelling this ryde.</Text>
+          <Text style={styles.feedbackHelperText}>Help us improve your experience by {'\n'}letting us know the reason for {'\n'}cancelling your ryde.</Text>
         </View>
 
         <View style={styles.reasonsContainer}>

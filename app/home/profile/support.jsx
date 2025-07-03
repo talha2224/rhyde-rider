@@ -15,8 +15,8 @@ const Support = () => {
     },
     {
       id: '2',
-      question: 'Can I schedule a ride in advance?',
-      answer: "Yes, you can schedule a ride up to 48 hours in advance using the 'Schedule ryde' option.",
+      question: 'Can I schedule a ryde in advance?',
+      answer: "Yes, you can schedule a ryde up to 48 hours in advance using the 'Schedule ryde' option.",
     },
     {
       id: '3',

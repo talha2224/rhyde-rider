@@ -1,4 +1,3 @@
-import { useColorScheme } from "@/hooks/useColorScheme";
 import { DarkTheme, ThemeProvider } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
@@ -6,11 +5,11 @@ import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import "react-native-reanimated";
+import Toast from 'react-native-toast-message';
 
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
@@ -43,7 +42,6 @@ export default function RootLayout() {
     "home/activities",
     "home/wallet",
     "home/rewards",
-    "home/profile",
     "home/rideHistory",
     "home/notification",
     "home/rhydes",
@@ -85,6 +83,7 @@ export default function RootLayout() {
           <Stack.Screen key={name} name={name} />
         ))}
       </Stack>
+      <Toast />
       <StatusBar style="auto" />
     </ThemeProvider>
 

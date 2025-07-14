@@ -1,15 +1,38 @@
 import { AntDesign, MaterialCommunityIcons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 import { router } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import cover_photo from "../../../assets/images/cover_photo.png"; // Assuming this path is correct
-import profile_photo from "../../../assets/images/profile_photo.png"; // Assuming this path is correct
 import BottomNavbar from "../../../components/BottomNavbar"; // Assuming this path is correct
+import config from '../../../config';
 
 const Profile = () => {
-  const userDetails = {
-    name: 'Paul Cleverly',
-    location: 'Kingston, Jamaica',
-  };
+
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const userId = await AsyncStorage.getItem('userId');
+        if (!userId) return;
+
+        console.log(`${config.baseUrl}/rider/info/${userId}`)
+
+        const res = await axios.get(`${config.baseUrl}/rider/info/${userId}`);
+        if (res.status === 201 && res.data?.data) {
+          setUser(res.data.data);
+        }
+      } catch (error) {
+        console.error("Error fetching user info:", error?.response?.data || error.message);
+      }
+    };
+
+    fetchUser();
+  }, []);
+
+  console.log(user?.profile, 'user?.profile')
 
   return (
     <View style={styles.container}>
@@ -18,10 +41,16 @@ const Profile = () => {
         <Image source={cover_photo} style={styles.coverPhoto} resizeMode="cover" />
 
 
-        <View style={{paddingHorizontal:20}}>
-          <Image source={profile_photo} style={styles.profilePhoto} />
-          <Text style={styles.userName}>{userDetails.name}</Text>
-          <Text style={styles.userLocation}>{userDetails.location}</Text>
+        <View style={{ paddingHorizontal: 20 }}>
+          <Image
+            source={
+              user?.profile
+                ? user.profile
+                : require("../../../assets/images/profile_photo.png")
+            }
+            style={styles.profilePhoto}
+          />          <Text style={styles.userName}>{user?.name}</Text>
+          {/* <Text style={styles.userLocation}>{userDetails.location}</Text> */}
 
           <View style={styles.quickAccessButtons}>
             <TouchableOpacity style={styles.quickAccessButton} onPress={() => router.push('/home/profile/singleprofile')}>
@@ -101,7 +130,7 @@ const Profile = () => {
             <MaterialCommunityIcons name="logout" size={24} color="#FF6347" />
             <View style={styles.menuItemTextContainer}>
               <Text style={styles.menuItemTitle}>Logout</Text>
-              <Text style={[styles.menuItemDescription,{display:"none"}]}>Lorem ipsum dolor sit amet consectetur adipisicing elit. Rem, deserunt?</Text>
+              <Text style={[styles.menuItemDescription, { display: "none" }]}>Lorem ipsum dolor sit amet consectetur adipisicing elit. Rem, deserunt?</Text>
             </View>
             <AntDesign name="right" size={16} color="#AAA" />
           </TouchableOpacity>
@@ -152,7 +181,7 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: 'bold',
     color: '#FFF',
-    marginBottom: 5,
+    marginBottom: 20,
   },
   userLocation: {
     fontSize: 14,
@@ -169,8 +198,8 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 10,
     backgroundColor: '#FFD700',
-    flex:1,
-    marginRight:10
+    flex: 1,
+    marginRight: 10
   },
   quickAccessButtonText: {
     fontSize: 12,

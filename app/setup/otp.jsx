@@ -1,6 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router'; // Assuming expo-router is correctly set up
-import { useRef, useState } from 'react'; // Import useRef
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
+import { router } from 'expo-router';
+import { useEffect, useRef, useState } from 'react';
 import {
     Keyboard,
     StatusBar,
@@ -10,31 +12,71 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+import Toast from 'react-native-toast-message';
+import config from '../../config';
 
 const Otp = () => {
     const [otp, setOtp] = useState(['', '', '', '']);
-
     const inputRefs = useRef([]);
+    const [email, setUserEmail] = useState('');
 
-    const handleOtpChange = (text, index) => {
-        if (text.length > 1) {
-            text = text.charAt(0);
+    useEffect(() => {
+        (async () => {
+            const email = await AsyncStorage.getItem("email");
+            setUserEmail(email);
+        })();
+    }, []);
+
+    const sendOtp = async (email) => {
+        try {
+            await axios.post(`${config.baseUrl}/rider/send/otp`, { email });
+            Toast.show({ type: 'success', text1: 'OTP sent to your email' });
+        } catch (error) {
+            console.error("OTP Send Error", error);
+            Toast.show({ type: 'error', text1: 'Failed to send OTP' });
+        }
+    };
+
+    const verifyOtp = async () => {
+        const code = otp.join('');
+        if (code.length !== 4) {
+            Toast.show({ type: 'error', text1: 'Enter full 4-digit OTP' });
+            return;
         }
 
+        try {
+            const response = await axios.post(`${config.baseUrl}/rider/verify/otp`, {
+                email: email,
+                otp: code
+            });
+
+            if (response.status === 200) {
+                Toast.show({ type: 'success', text1: 'OTP Verified!' });
+                router.push('/setup/upload');
+            } else {
+                Toast.show({ type: 'error', text1: response?.data?.msg || "Verification failed" });
+            }
+        } catch (error) {
+            console.error("OTP Verify Error", error);
+            Toast.show({
+                type: 'error',
+                text1: error?.response?.data?.msg || "Invalid OTP"
+            });
+        }
+    };
+
+    const handleOtpChange = (text, index) => {
+        if (text.length > 1) text = text.charAt(0);
         const newOtp = [...otp];
         newOtp[index] = text;
         setOtp(newOtp);
-        if (text !== '' && index < 5) {
-            inputRefs.current[index + 1].focus();
-        }
-        if (index === 5 && text !== '') {
-            Keyboard.dismiss();
-        }
+        if (text !== '' && index < 3) inputRefs.current[index + 1]?.focus();
+        if (index === 3 && text !== '') Keyboard.dismiss();
     };
 
     const handleKeyPress = (e, index) => {
         if (e.nativeEvent.key === 'Backspace' && otp[index] === '' && index > 0) {
-            inputRefs.current[index - 1].focus();
+            inputRefs.current[index - 1]?.focus();
         }
     };
 
@@ -42,19 +84,12 @@ const Otp = () => {
         router.back();
     };
 
-    const handleNext = () => {
-        const fullOtp = otp.join('');
-        router.push('/setup/upload');
-    };
-
-    // Check if all OTP fields are filled
     const isOtpComplete = otp.every(digit => digit !== '');
 
     return (
         <View style={styles.container}>
             <StatusBar barStyle="light-content" backgroundColor="#1A1A1A" />
 
-            {/* Back Button */}
             <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
                 <Ionicons name="chevron-back" size={24} color="white" />
             </TouchableOpacity>
@@ -62,11 +97,9 @@ const Otp = () => {
             <View style={styles.contentArea}>
                 <Text style={styles.title}>OTP Verification</Text>
                 <Text style={styles.description}>
-                    An OTP code will be sent to your phone number or{' '}
-                    <Text style={styles.emailLink}>use Email instead</Text>
+                    An OTP code has been sent to your registered email.
                 </Text>
 
-                {/* OTP Input Fields */}
                 <View style={styles.otpInputContainer}>
                     {otp.map((digit, index) => (
                         <TextInput
@@ -74,34 +107,33 @@ const Otp = () => {
                             style={styles.otpInput}
                             keyboardType="number-pad"
                             maxLength={1}
-                            onChangeText={(text) => handleOtpChange(text, index)}
                             value={digit}
-                            ref={(ref) => (inputRefs.current[index] = ref)}
+                            onChangeText={(text) => handleOtpChange(text, index)}
                             onKeyPress={(e) => handleKeyPress(e, index)}
-                            caretHidden={true} // Hide cursor
+                            ref={(ref) => (inputRefs.current[index] = ref)}
+                            caretHidden={true}
                         />
                     ))}
                 </View>
-
-                {/* Resend OTP / Timer (Optional - not in image, but common for OTP) */}
-                {/*
-        <TouchableOpacity onPress={() => console.log('Resend OTP')} style={styles.resendOtpButton}>
-          <Text style={styles.resendOtpText}>Resend OTP</Text>
-        </TouchableOpacity>
-        */}
+                <TouchableOpacity onPress={() => sendOtp(email)} style={styles.resendOtpButton}>
+                    <Text style={styles.resendOtpText}>Resend OTP</Text>
+                </TouchableOpacity>
             </View>
 
-            {/* Next Button */}
+
+
             <TouchableOpacity
-                onPress={handleNext}
+                onPress={verifyOtp}
                 style={[styles.nextButton, !isOtpComplete && styles.nextButtonDisabled]}
                 disabled={!isOtpComplete}
             >
-                <Text style={styles.nextButtonText}>Next</Text>
+                <Text style={styles.nextButtonText}>Verify</Text>
             </TouchableOpacity>
         </View>
     );
 };
+
+export default Otp;
 
 const styles = StyleSheet.create({
     container: {
@@ -140,9 +172,10 @@ const styles = StyleSheet.create({
     },
     otpInputContainer: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
+        justifyContent: 'center',
         marginBottom: 40,
         width: '100%',
+        gap: 20
     },
     otpInput: {
         width: 50,
@@ -189,5 +222,3 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
 });
-
-export default Otp;

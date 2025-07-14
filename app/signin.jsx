@@ -12,18 +12,91 @@ import {
     View
 } from 'react-native';
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 import { router } from 'expo-router';
+import Toast from 'react-native-toast-message';
 import logo from "../assets/images/logo.png";
 import loginBg from "../assets/images/onboarding/1.png";
+import config from '../config';
 
 const Signin = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
 
-    const handleSignIn = () => {
-        router.push("/home");
+    const handleSignIn = async () => {
+        if (!email || !password) {
+            Toast.show({
+                type: 'error',
+                text1: 'Missing fields',
+                text2: 'Please enter both email and password.',
+            });
+            return;
+        }
+
+        try {
+            Toast.show({
+                type: 'info',
+                text1: 'Logging in...',
+                text2: 'Please wait.',
+                autoHide: false, // prevent auto-dismiss
+            });
+
+            const response = await axios.post(`${config.baseUrl}/rider/login`, {
+                email,
+                password,
+            });
+
+            Toast.hide(); // Hide loading toast
+
+            if (response.status === 200 && response.data?.data?._id) {
+                await AsyncStorage.setItem('userId', response.data.data._id);
+
+                Toast.show({
+                    type: 'success',
+                    text1: 'Login Successful',
+                    text2: 'Welcome back!',
+                });
+
+                router.push('/home');
+            } else {
+                Toast.show({
+                    type: 'error',
+                    text1: 'Login Failed',
+                    text2: response.data?.msg || 'Unexpected error occurred.',
+                });
+            }
+        } catch (error) {
+            Toast.hide();
+
+            if (error.response) {
+                const code = error.response.data?.code;
+                const msg = error.response.data?.msg;
+
+                if (code === 401) {
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Account Not Verified',
+                        text2: msg || 'Verification pending. Check your email.',
+                    });
+                } else {
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Login Error',
+                        text2: msg || 'Invalid email or password.',
+                    });
+                }
+            } else {
+                Toast.show({
+                    type: 'error',
+                    text1: 'Network Error',
+                    text2: 'Please check your internet connection.',
+                });
+            }
+        }
     };
+
 
     const handleForgotPassword = () => {
         router.push("/forgot");

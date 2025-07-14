@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import {
@@ -17,8 +18,13 @@ const FullName = () => {
         router.back();
     };
 
-    const handleNext = () => {
-        router.push('/setup/phone');
+    const handleNext = async () => {
+        try {
+            await AsyncStorage.setItem('fullName', fullName);
+            router.push('/setup/phone');
+        } catch (error) {
+            console.log("Error saving full name:", error);
+        }
     };
 
     return (

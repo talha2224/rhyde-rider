@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router'; // Assuming expo-router is correctly set up
+import axios from 'axios';
+import { router, useLocalSearchParams } from 'expo-router'; // Assuming expo-router is correctly set up
 import { useRef, useState } from 'react'; // Import useRef
 import {
     Keyboard,
@@ -10,10 +11,12 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+import Toast from 'react-native-toast-message';
+import config from '../../config';
 
 const Otp = () => {
     const [otp, setOtp] = useState(['', '', '', '']);
-
+    const { email } = useLocalSearchParams();
     const inputRefs = useRef([]);
 
     const handleOtpChange = (text, index) => {
@@ -24,10 +27,10 @@ const Otp = () => {
         const newOtp = [...otp];
         newOtp[index] = text;
         setOtp(newOtp);
-        if (text !== '' && index < 5) {
+        if (text !== '' && index < 3) {
             inputRefs.current[index + 1].focus();
         }
-        if (index === 5 && text !== '') {
+        if (index === 3 && text !== '') {
             Keyboard.dismiss();
         }
     };
@@ -42,13 +45,87 @@ const Otp = () => {
         router.back();
     };
 
-    const handleNext = () => {
+    const handleNext = async () => {
         const fullOtp = otp.join('');
-        router.push('/forgot/password');
+
+        try {
+            Toast.show({
+                type: 'info',
+                text1: 'Verifying...',
+                autoHide: false,
+            });
+
+            const response = await axios.post(`${config.baseUrl}/rider/verify/otp`, {
+                email,
+                otp: fullOtp,
+            });
+
+            Toast.hide();
+
+            if (response.status === 200) {
+                Toast.show({
+                    type: 'success',
+                    text1: 'Verified',
+                    text2: 'OTP verified successfully!',
+                });
+
+                router.push({
+                    pathname: '/forgot/password',
+                    params: { email }, // pass to reset screen
+                });
+            } else {
+                Toast.show({
+                    type: 'error',
+                    text1: 'Verification Failed',
+                    text2: response.data?.msg || 'Invalid OTP',
+                });
+            }
+        } catch (error) {
+            Toast.hide();
+            Toast.show({
+                type: 'error',
+                text1: 'Error',
+                text2: error?.response?.data?.msg || 'Something went wrong',
+            });
+        }
+    };
+    const isOtpComplete = otp.every(digit => digit !== '');
+
+    const handleResendOtp = async () => {
+        try {
+            Toast.show({
+                type: 'info',
+                text1: 'Resending...',
+                autoHide: false,
+            });
+
+            const response = await axios.post(`${config.baseUrl}/rider/send/otp`, { email });
+
+            Toast.hide();
+
+            if (response.status === 200) {
+                Toast.show({
+                    type: 'success',
+                    text1: 'OTP Sent',
+                    text2: 'New OTP sent to your email',
+                });
+            } else {
+                Toast.show({
+                    type: 'error',
+                    text1: 'Failed',
+                    text2: response.data?.msg || 'Try again later',
+                });
+            }
+        } catch (error) {
+            Toast.hide();
+            Toast.show({
+                type: 'error',
+                text1: 'Error',
+                text2: error?.response?.data?.msg || 'Something went wrong',
+            });
+        }
     };
 
-    // Check if all OTP fields are filled
-    const isOtpComplete = otp.every(digit => digit !== '');
 
     return (
         <View style={styles.container}>
@@ -85,8 +162,8 @@ const Otp = () => {
 
                 {/* Resend OTP / Timer (Optional - not in image, but common for OTP) */}
 
-                <TouchableOpacity onPress={() => console.log('Resend OTP')} style={styles.resendOtpButton}>
-                    <Text style={{color:"#8C849C"}}>Didn’t receive code? </Text>
+                <TouchableOpacity onPress={handleResendOtp} style={styles.resendOtpButton}>
+                    <Text style={{ color: "#8C849C" }}>Didn’t receive code? </Text>
                     <Text style={styles.resendOtpText}>Resend OTP</Text>
                 </TouchableOpacity>
 
@@ -141,9 +218,10 @@ const styles = StyleSheet.create({
     },
     otpInputContainer: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
+        justifyContent: 'center',
         marginBottom: 40,
         width: '100%',
+        gap: 20
     },
     otpInput: {
         width: 50,
@@ -160,8 +238,8 @@ const styles = StyleSheet.create({
     // Optional: style for a resend OTP button if you add one
     resendOtpButton: {
         marginTop: 20,
-        flexDirection:"row",
-        gap:6
+        flexDirection: "row",
+        gap: 6
     },
     resendOtpText: {
         color: '#FBB73A',

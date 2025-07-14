@@ -1,27 +1,51 @@
 import { AntDesign, FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 import { router } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import carImg from '../../assets/images/home/car.png';
 import mapImg from '../../assets/images/home/map.png';
 import BottomNavbar from '../../components/BottomNavbar';
+import config from '../../config';
 
 const Home = () => {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const userId = await AsyncStorage.getItem('userId');
+        if (!userId) return;
+
+        const response = await axios.get(`${config.baseUrl}/rider/info/${userId}`);
+        if (response.status === 201 && response.data?.data) {
+          setUser(response.data.data);
+        }
+      } catch (error) {
+        console.log('Failed to fetch user:', error?.response?.data || error.message);
+      }
+    };
+
+    fetchUser();
+  }, []);
+
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
 
         <View style={styles.header}>
           <View>
-            <Text style={styles.greeting}>Hello Daniel</Text>
+            <Text style={styles.greeting}>Hello {user?.name}</Text>
             <Text style={styles.question}>Where would you like to go?</Text>
           </View>
-          <TouchableOpacity onPress={()=>router.push("/home/notification")}><MaterialCommunityIcons name="bell-outline" size={24} color="#FFF" /></TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push("/home/notification")}><MaterialCommunityIcons name="bell-outline" size={24} color="#FFF" /></TouchableOpacity>
         </View>
 
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Top rydes</Text>
-            <TouchableOpacity onPress={()=>router.push("/home/rhydes")}>
+            <TouchableOpacity onPress={() => router.push("/home/rhydes")}>
               <Text style={styles.seeMore}>See more</Text>
             </TouchableOpacity>
           </View>
@@ -61,13 +85,13 @@ const Home = () => {
         <View style={styles.locationInputContainer}>
           <View style={styles.inputRow}>
             <MaterialCommunityIcons name="circle-outline" size={20} color="#FFD700" />
-            <TextInput placeholder='Your current location' placeholderTextColor={"#fff"}style={{height:40,flex:1}}/>
+            <TextInput placeholder='Your current location' placeholderTextColor={"#fff"} style={{ height: 40, flex: 1 }} />
           </View>
           <View style={styles.inputRow}>
             <MaterialCommunityIcons name="map-marker-outline" size={20} color="#FFD700" />
-            <TextInput placeholder='Your destination' placeholderTextColor={"#fff"}style={{height:40,flex:1}}/>
+            <TextInput placeholder='Your destination' placeholderTextColor={"#fff"} style={{ height: 40, flex: 1 }} />
           </View>
-          <TouchableOpacity onPress={()=>router.push("/home/booking")} style={styles.bookRydeButton}>
+          <TouchableOpacity onPress={() => router.push("/home/booking")} style={styles.bookRydeButton}>
             <Text style={styles.bookRydeButtonText}>Book ryde</Text>
           </TouchableOpacity>
         </View>
@@ -76,7 +100,7 @@ const Home = () => {
         <View style={[styles.section, { marginBottom: 80 }]}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>History</Text>
-            <TouchableOpacity onPress={()=>router.push("/home/rideHistory")}>
+            <TouchableOpacity onPress={() => router.push("/home/rideHistory")}>
               <Text style={styles.seeMore}>See more</Text>
             </TouchableOpacity>
           </View>
@@ -232,12 +256,12 @@ const styles = StyleSheet.create({
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor:"#1C1A1B",
-    paddingVertical:5,
-    paddingHorizontal:8,
-    borderRadius:5,
-    marginBottom:10,
-    gap:10
+    backgroundColor: "#1C1A1B",
+    paddingVertical: 5,
+    paddingHorizontal: 8,
+    borderRadius: 5,
+    marginBottom: 10,
+    gap: 10
   },
   bookRydeButton: {
     backgroundColor: '#FBB73A',

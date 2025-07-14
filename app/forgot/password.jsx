@@ -1,5 +1,6 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import axios from 'axios';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import {
     StatusBar,
@@ -9,7 +10,8 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
-
+import Toast from 'react-native-toast-message';
+import config from '../../config'; // adjust path
 
 const Password = () => {
     const [password, setPassword] = useState('');
@@ -20,8 +22,77 @@ const Password = () => {
         router.back();
     };
 
-    const handleNext = () => {
-        router.push('/signin');
+    const { email } = useLocalSearchParams();
+
+    const handleNext = async () => {
+        console.log(email,'email')
+        if (!password || !confirmPassword) {
+            Toast.show({
+                type: 'error',
+                text1: 'Missing Fields',
+                text2: 'Please fill out both password fields.',
+            });
+            return;
+        }
+
+        if (password.length < 6) {
+            Toast.show({
+                type: 'error',
+                text1: 'Weak Password',
+                text2: 'Password must be at least 6 characters.',
+            });
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            Toast.show({
+                type: 'error',
+                text1: 'Password Mismatch',
+                text2: 'Passwords do not match.',
+            });
+            return;
+        }
+
+        try {
+            Toast.show({
+                type: 'info',
+                text1: 'Changing Password...',
+                autoHide: false,
+            });
+
+            const response = await axios.post(`${config.baseUrl}/rider/change/password`, {
+                email,
+                password,
+            });
+
+            Toast.hide();
+
+            if (response.status === 200) {
+                Toast.show({
+                    type: 'success',
+                    text1: 'Password Changed',
+                    text2: 'You can now sign in.',
+                });
+
+                setTimeout(() => {
+                    router.push('/signin');
+                }, 1000);
+            } else {
+                Toast.show({
+                    type: 'error',
+                    text1: 'Error',
+                    text2: response.data?.msg || 'Something went wrong',
+                });
+            }
+        } catch (error) {
+            Toast.hide();
+            console.log(error)
+            Toast.show({
+                type: 'error',
+                text1: 'Error',
+                text2: error?.response?.data?.msg || 'Something went wrong',
+            });
+        }
     };
 
     return (

@@ -1,4 +1,5 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import axios from 'axios';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import {
@@ -9,6 +10,8 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
+import Toast from 'react-native-toast-message';
+import config from '../../config';
 
 
 const Phone = () => {
@@ -18,9 +21,56 @@ const Phone = () => {
         router.back();
     };
 
-    const handleNext = () => {
-        router.push('/forgot/otp');
+    const handleNext = async () => {
+        try {
+            Toast.show({
+                type: 'info',
+                text1: 'Sending OTP...',
+                autoHide: false,
+            });
+
+            const response = await axios.post(`${config.baseUrl}/rider/send/otp`, {
+                email: email.trim(),
+            });
+
+            Toast.hide();
+
+            if (response.status === 200) {
+                Toast.show({
+                    type: 'success',
+                    text1: 'Success',
+                    text2: 'OTP sent to your email.',
+                });
+
+                router.push({
+                    pathname: '/forgot/otp',
+                    params: { email }, // pass email to next screen
+                });
+            } else {
+                Toast.show({
+                    type: 'error',
+                    text1: 'Failed',
+                    text2: response.data?.msg || 'Something went wrong.',
+                });
+            }
+        } catch (error) {
+            Toast.hide();
+            if (error.response?.data?.msg) {
+                Toast.show({
+                    type: 'error',
+                    text1: 'Error',
+                    text2: error.response.data.msg,
+                });
+            } else {
+                Toast.show({
+                    type: 'error',
+                    text1: 'Network Error',
+                    text2: 'Please try again.',
+                });
+            }
+        }
     };
+
 
     return (
         <View style={styles.container}>

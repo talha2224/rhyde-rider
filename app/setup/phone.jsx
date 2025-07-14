@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import {
@@ -12,14 +13,18 @@ import {
 
 
 const Phone = () => {
-    const [fullName, setFullName] = useState('');
-
+    const [phone, setPhone] = useState('');
     const handleGoBack = () => {
         router.back();
     };
 
-    const handleNext = () => {
-        router.push('/setup/otp');
+    const handleNext = async () => {
+        try {
+            await AsyncStorage.setItem('phone', phone);
+            router.push('/setup/otp');
+        } catch (error) {
+            console.log("Error saving phone number:", error);
+        }
     };
 
     return (
@@ -38,12 +43,12 @@ const Phone = () => {
                 <Text style={styles.description}>We’ll use your number and email to send ryde updates and receipts.</Text>
 
                 <View style={styles.inputContainer}>
-                    <TextInput style={styles.input} placeholder="Phone number" placeholderTextColor="#fff" keyboardType="phone-pad" value={fullName} onChangeText={setFullName} />
+                    <TextInput style={styles.input} placeholder="Phone number" placeholderTextColor="#fff" keyboardType="phone-pad" value={phone} onChangeText={setPhone} />
                 </View>
 
             </View>
 
-            <TouchableOpacity onPress={handleNext} style={[styles.nextButton, !fullName && styles.nextButtonDisabled]} disabled={!fullName} >
+            <TouchableOpacity onPress={handleNext} style={[styles.nextButton, !phone && styles.nextButtonDisabled]} disabled={!phone} >
                 <Text style={styles.nextButtonText}>Next</Text>
             </TouchableOpacity>
 

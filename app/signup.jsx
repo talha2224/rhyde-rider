@@ -12,20 +12,84 @@ import {
     View
 } from 'react-native';
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 import { router } from 'expo-router';
+import Toast from 'react-native-toast-message';
 import logo from "../assets/images/logo.png";
 import loginBg from "../assets/images/onboarding/1.png";
+import config from '../config';
 
 const Signup = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
 
-    const handleSignIn = () => {
-        router.push("/setup");
+    const handleSignUp = async () => {
+        if (!email || !password || !confirmPassword) {
+            Toast.show({
+                type: 'error',
+                text1: 'All fields are required',
+            });
+            return;
+        }
+
+        if (password.length < 6) {
+            Toast.show({
+                type: 'error',
+                text1: 'Password must be at least 6 characters',
+            });
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            Toast.show({
+                type: 'error',
+                text1: 'Passwords do not match',
+            });
+            return;
+        }
+
+        Toast.show({ type: 'info', text1: 'Signing up...' });
+
+        try {
+            const response = await axios.post(`${config.baseUrl}/rider/register`, { email, password });
+
+            if (response.status === 200 || response.status === 201) {
+                const userId = response?.data?.data?._id;
+                const email = response?.data?.data?.email;
+                await AsyncStorage.setItem("userId", userId);
+                await AsyncStorage.setItem("email", email);
+
+                Toast.show({
+                    type: 'success',
+                    text1: 'Signup successful',
+                    text2: 'Complete your profile',
+                });
+
+                setTimeout(() => {
+                    router.push("/setup");
+                }, 2000);
+            } else {
+                Toast.show({
+                    type: 'error',
+                    text1: 'Signup failed',
+                    text2: response?.data?.msg || 'Unexpected error',
+                });
+            }
+        } catch (err) {
+            console.log(err);
+            Toast.show({
+                type: 'error',
+                text1: 'Something went wrong',
+                text2: err?.response?.data?.msg || err.message,
+            });
+        }
     };
 
-    const handleSignUp = () => {
+
+    const handleSignIn = () => {
         console.log('Sign up pressed');
         router.push("/signin");
     };
@@ -108,8 +172,8 @@ const Signup = () => {
                                 placeholder="Confirm Password"
                                 placeholderTextColor="#888"
                                 secureTextEntry={!showPassword}
-                                value={password}
-                                onChangeText={setPassword}
+                                value={confirmPassword}
+                                onChangeText={setConfirmPassword}
                             />
                             <TouchableOpacity
                                 onPress={() => setShowPassword(!showPassword)}
@@ -123,13 +187,13 @@ const Signup = () => {
                             </TouchableOpacity>
                         </View>
 
-                        <TouchableOpacity onPress={handleSignIn} style={styles.signInButton}>
+                        <TouchableOpacity onPress={handleSignUp} style={styles.signInButton}>
                             <Text style={styles.signInButtonText}>Sign up</Text>
                         </TouchableOpacity>
 
                         <View style={styles.signUpContainer}>
                             <Text style={styles.signUpText}>Already have an account?</Text>
-                            <TouchableOpacity onPress={handleSignUp}>
+                            <TouchableOpacity onPress={handleSignIn}>
                                 <Text style={styles.signUpLink}> Sign in</Text>
                             </TouchableOpacity>
                         </View>

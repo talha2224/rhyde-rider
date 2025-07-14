@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import {
+    Alert,
     StatusBar,
     StyleSheet,
     Text,
@@ -10,18 +11,105 @@ import {
     View
 } from 'react-native';
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
+import Toast from 'react-native-toast-message';
+import config from '../../config';
 
 const Emergency = () => {
-    const [fullName, setFullName] = useState('');
+    const [fullName2, setFullName2] = useState('');
     const [phoneNumber, setPhoneNumber] = useState('');
 
     const handleGoBack = () => {
         router.back();
     };
 
-    const handleNext = () => {
-        router.push("/home");
+    const handleNext = async () => {
+        try {
+            const userId = await AsyncStorage.getItem('userId');
+            const fullName = await AsyncStorage.getItem('fullName');
+            const phone = await AsyncStorage.getItem('phone');
+            const paymentMethod = await AsyncStorage.getItem('paymentMethod');
+
+            const profileImageStr = await AsyncStorage.getItem('profileImage');
+            const idImageStr = await AsyncStorage.getItem('idImage');
+
+            const profileImage = JSON.parse(profileImageStr);
+            const idImage = JSON.parse(idImageStr);
+
+            if (!profileImage || !idImage || !paymentMethod || !userId) {
+                Alert.alert('Error', 'Missing data from previous steps.');
+                return;
+            }
+            Toast.show({
+                type: 'info',
+                text1: 'Uploading...',
+                text2: 'Please wait while we complete your profile.',
+                autoHide: false,
+            });
+
+            const formData = new FormData();
+            formData.append('name', fullName);
+            formData.append('phone_number', phone);
+            formData.append('payment_method', paymentMethod);
+
+            formData.append('profile', {
+                uri: profileImage.uri,
+                name: profileImage.fileName || 'profile.jpg',
+                type: profileImage.mimeType || 'image/jpeg',
+            });
+
+            formData.append('id_card', {
+                uri: idImage.uri,
+                name: idImage.fileName || 'id.jpg',
+                type: idImage.mimeType || 'image/jpeg',
+            });
+
+            const response = await axios.put(
+                `${config.baseUrl}/rider/update/${userId}`,
+                formData,
+                {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                }
+            );
+
+            // Hide loading toast manually
+            Toast.hide();
+
+            if (response.status === 200) {
+                // Clear all AsyncStorage keys except userId
+                const keys = await AsyncStorage.getAllKeys();
+                const keysToRemove = keys.filter((key) => key !== 'userId');
+                await AsyncStorage.multiRemove(keysToRemove);
+
+                Toast.show({
+                    type: 'success',
+                    text1: 'Success',
+                    text2: 'Profile completed successfully!',
+                });
+
+                router.push("/home");
+            } else {
+                Toast.show({
+                    type: 'error',
+                    text1: 'Error',
+                    text2: response.data?.msg || 'Something went wrong.',
+                });
+            }
+        } catch (err) {
+            console.error(err);
+            Toast.hide();
+            Toast.show({
+                type: 'error',
+                text1: 'Upload Failed',
+                text2: 'Something went wrong while uploading data.',
+            });
+        }
     };
+
+
 
     return (
         <View style={styles.container}>
@@ -39,7 +127,7 @@ const Emergency = () => {
                 <Text style={styles.description}>Add trusted contacts we can notify instantly in case of an emergency.</Text>
 
                 <View style={[styles.inputContainer, { marginBottom: 15 }]}>
-                    <TextInput style={styles.input} placeholder="Full Name" placeholderTextColor="#fff" keyboardType="default" value={fullName} onChangeText={setFullName} />
+                    <TextInput style={styles.input} placeholder="Full Name" placeholderTextColor="#fff" keyboardType="default" value={fullName2} onChangeText={setFullName2} />
                 </View>
 
                 <View style={styles.inputContainer}>
@@ -48,7 +136,7 @@ const Emergency = () => {
 
             </View>
 
-            <TouchableOpacity onPress={handleNext} style={[styles.nextButton, !fullName && styles.nextButtonDisabled]} disabled={!fullName} >
+            <TouchableOpacity onPress={handleNext} style={[styles.nextButton, !fullName2 && styles.nextButtonDisabled]} disabled={!fullName2} >
                 <Text style={styles.nextButtonText}>Next</Text>
             </TouchableOpacity>
 

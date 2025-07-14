@@ -1,26 +1,30 @@
 import { FontAwesome5, Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Alert, Image, Platform, StatusBar, StyleSheet, Text, TouchableOpacity, View, } from 'react-native';
+import {
+  Alert,
+  Image,
+  Platform,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 const Upload = () => {
-
-  const [profileImageUri, setProfileImageUri] = useState(null);
-  const [idImageUri, setIdImageUri] = useState(null);
+  const [profileImage, setProfileImage] = useState(null);
+  const [idImage, setIdImage] = useState(null);
 
   const requestCameraPermission = async () => {
     if (Platform.OS !== 'web') {
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert(
-          'Permission required',
-          'Sorry, we need camera roll permissions to make this work!',
-          [{ text: 'OK' }]
-        );
+        Alert.alert('Permission required', 'Camera access is needed to take a photo.');
         return false;
       }
-      return true;
     }
     return true;
   };
@@ -29,88 +33,79 @@ const Upload = () => {
     if (Platform.OS !== 'web') {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert(
-          'Permission required',
-          'Sorry, we need media library permissions to make this work!',
-          [{ text: 'OK' }]
-        );
+        Alert.alert('Permission required', 'Media library access is needed.');
         return false;
       }
-      return true;
     }
     return true;
   };
 
-  const pickImage = async (setImageUri) => {
+  const pickImage = async (setImage) => {
     const hasCameraPermission = await requestCameraPermission();
-    const hasMediaLibraryPermission = await requestMediaLibraryPermission();
+    const hasMediaPermission = await requestMediaLibraryPermission();
 
-    if (!hasCameraPermission || !hasMediaLibraryPermission) {
-      return;
-    }
+    if (!hasCameraPermission || !hasMediaPermission) return;
 
-    Alert.alert(
-      "Select Image",
-      "Choose an option to upload your image",
-      [
-        {
-          text: "Take Photo",
-          onPress: async () => {
-            let result = await ImagePicker.launchCameraAsync({
-              mediaTypes: ImagePicker.MediaTypeOptions.Images,
-              allowsEditing: true,
-              aspect: [4, 3],
-              quality: 1,
-            });
+    Alert.alert('Select Image', 'Choose an option to upload your image', [
+      {
+        text: 'Take Photo',
+        onPress: async () => {
+          const result = await ImagePicker.launchCameraAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [4, 3],
+            quality: 1,
+          });
 
-            if (!result.canceled && result.assets && result.assets.length > 0) {
-              setImageUri(result.assets[0].uri);
-            }
-          },
+          if (!result.canceled && result.assets.length > 0) {
+            setImage(result.assets[0]);
+          }
         },
-        {
-          text: "Choose from Gallery",
-          onPress: async () => {
-            let result = await ImagePicker.launchImageLibraryAsync({
-              mediaTypes: ImagePicker.MediaTypeOptions.Images,
-              allowsEditing: true,
-              aspect: [4, 3],
-              quality: 1,
-            });
+      },
+      {
+        text: 'Choose from Gallery',
+        onPress: async () => {
+          const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [4, 3],
+            quality: 1,
+          });
 
-            if (!result.canceled && result.assets && result.assets.length > 0) {
-              setImageUri(result.assets[0].uri);
-            }
-          },
+          if (!result.canceled && result.assets.length > 0) {
+            setImage(result.assets[0]);
+          }
         },
-        {
-          text: "Cancel",
-          style: "cancel",
-        },
-      ],
-      { cancelable: true }
-    );
+      },
+      { text: 'Cancel', style: 'cancel' },
+    ]);
   };
 
   const handleGoBack = () => {
     router.back();
   };
 
-  const handleNext = () => {
-    if (!profileImageUri) {
+  const handleNext = async () => {
+    if (!profileImage) {
       Alert.alert('Missing Profile Picture', 'Please upload a profile picture to continue.');
       return;
     }
-    if (!idImageUri) {
+    if (!idImage) {
       Alert.alert('Missing Valid ID', 'Please upload a valid ID to continue.');
       return;
     }
-    console.log('Profile Picture URI:', profileImageUri);
-    console.log('Valid ID URI:', idImageUri);
-    router.push('/setup/payment');
+
+    try {
+      await AsyncStorage.setItem('profileImage', JSON.stringify(profileImage));
+      await AsyncStorage.setItem('idImage', JSON.stringify(idImage));
+      router.push('/setup/payment');
+    } catch (error) {
+      console.error('Error saving images:', error);
+      Alert.alert('Storage Error', 'Could not save images. Please try again.');
+    }
   };
 
-  const isNextButtonEnabled = profileImageUri && idImageUri;
+  const isNextButtonEnabled = profileImage && idImage;
 
   return (
     <View style={styles.container}>
@@ -126,38 +121,27 @@ const Upload = () => {
           Your photo and ID help drivers recognize you and keep the platform safe.
         </Text>
 
-        {/* Profile Picture Upload Section */}
-        <TouchableOpacity
-          style={styles.uploadOptionButton}
-          onPress={() => pickImage(setProfileImageUri)}
-        >
+        {/* Profile Picture Upload */}
+        <TouchableOpacity style={styles.uploadOptionButton} onPress={() => pickImage(setProfileImage)}>
           <View style={styles.uploadOptionContent}>
             <FontAwesome5 name="camera-retro" size={20} color="white" style={styles.uploadIcon} />
             <Text style={styles.uploadText}>Profile picture</Text>
-            {profileImageUri && (
-              <Image source={{ uri: profileImageUri }} style={styles.uploadedThumbnail} />
-            )}
+            {profileImage && <Image source={{ uri: profileImage.uri }} style={styles.uploadedThumbnail} />}
           </View>
           <Ionicons name="chevron-forward" size={24} color="white" />
         </TouchableOpacity>
 
-        {/* Valid ID Upload Section */}
-        <TouchableOpacity
-          style={styles.uploadOptionButton}
-          onPress={() => pickImage(setIdImageUri)}
-        >
+        {/* ID Upload */}
+        <TouchableOpacity style={styles.uploadOptionButton} onPress={() => pickImage(setIdImage)}>
           <View style={styles.uploadOptionContent}>
             <FontAwesome5 name="id-card-alt" size={20} color="white" style={styles.uploadIcon} />
             <Text style={styles.uploadText}>Valid ID</Text>
-            {idImageUri && (
-              <Image source={{ uri: idImageUri }} style={styles.uploadedThumbnail} />
-            )}
+            {idImage && <Image source={{ uri: idImage.uri }} style={styles.uploadedThumbnail} />}
           </View>
           <Ionicons name="chevron-forward" size={24} color="white" />
         </TouchableOpacity>
       </View>
 
-      {/* Next Button */}
       <TouchableOpacity
         onPress={handleNext}
         style={[styles.nextButton, !isNextButtonEnabled && styles.nextButtonDisabled]}
@@ -170,6 +154,7 @@ const Upload = () => {
 };
 
 export default Upload;
+
 
 const styles = StyleSheet.create({
   container: {

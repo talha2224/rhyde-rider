@@ -1,12 +1,14 @@
 import { Entypo, FontAwesome5, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import {
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 const Payment = () => {
@@ -16,12 +18,17 @@ const Payment = () => {
     router.back();
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (selectedPaymentMethod) {
-      console.log('Selected Payment Method:', selectedPaymentMethod);
-      router.push('/setup/emergency');
+      try {
+        await AsyncStorage.setItem('paymentMethod', selectedPaymentMethod);
+        router.push('/setup/emergency');
+      } catch (err) {
+        console.error('Failed to save payment method:', err);
+        Alert.alert('Error', 'Failed to save your selection. Please try again.');
+      }
     } else {
-      console.log('Please select a payment method.');
+      Alert.alert('Missing Selection', 'Please select a payment method.');
     }
   };
 
@@ -49,7 +56,7 @@ const Payment = () => {
         {/* Payment Options List */}
         <View style={styles.optionsList}>
           {paymentOptions.map((option) => (
-            
+
             <TouchableOpacity key={option.id} style={styles.optionButton} onPress={() => setSelectedPaymentMethod(option.id)}>
               <View style={styles.optionContent}>
                 {option.iconFamily === FontAwesome5 && (
@@ -60,7 +67,7 @@ const Payment = () => {
                 )}
                 <Text style={styles.optionText}>{option.name}</Text>
               </View>
-              <View style={[styles.radioButton,selectedPaymentMethod === option.id? styles.radioButtonSelected: styles.radioButtonUnselected,]}>
+              <View style={[styles.radioButton, selectedPaymentMethod === option.id ? styles.radioButtonSelected : styles.radioButtonUnselected,]}>
                 {selectedPaymentMethod === option.id && (<Ionicons name="checkmark-sharp" size={16} color="#1A1A1A" />)}
               </View>
             </TouchableOpacity>

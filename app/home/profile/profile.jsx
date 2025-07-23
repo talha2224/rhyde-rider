@@ -17,9 +17,6 @@ const Profile = () => {
       try {
         const userId = await AsyncStorage.getItem('userId');
         if (!userId) return;
-
-        console.log(`${config.baseUrl}/rider/info/${userId}`)
-
         const res = await axios.get(`${config.baseUrl}/rider/info/${userId}`);
         if (res.status === 201 && res.data?.data) {
           setUser(res.data.data);
@@ -31,9 +28,6 @@ const Profile = () => {
 
     fetchUser();
   }, []);
-
-  console.log(user?.profile, 'user?.profile')
-
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
@@ -43,14 +37,10 @@ const Profile = () => {
 
         <View style={{ paddingHorizontal: 20 }}>
           <Image
-            source={
-              user?.profile
-                ? user.profile
-                : require("../../../assets/images/profile_photo.png")
-            }
+            source={{ uri: user?.profile }}
             style={styles.profilePhoto}
-          />          <Text style={styles.userName}>{user?.name}</Text>
-          {/* <Text style={styles.userLocation}>{userDetails.location}</Text> */}
+          />
+          <Text style={styles.userName}>{user?.name}</Text>
 
           <View style={styles.quickAccessButtons}>
             <TouchableOpacity style={styles.quickAccessButton} onPress={() => router.push('/home/profile/singleprofile')}>

@@ -1,17 +1,17 @@
 import { AntDesign, FontAwesome, MaterialCommunityIcons } from '@expo/vector-icons';
 import Entypo from '@expo/vector-icons/Entypo';
-import { router } from 'expo-router';
-import { useState } from 'react';
+import { router, useLocalSearchParams } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { Dimensions, Image, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import mapImg from '../../../assets/images/home/map.png';
+import Map from '../../../components/Map';
 import { paymentMethods, ryderOptions } from '../../../constants/constant';
 
-const { width, height } = Dimensions.get('window');
+const { height } = Dimensions.get('window');
 
-const SelectLocation = () => {
-
-  const [pickupLocation, setPickupLocation] = useState('4517 Washington Ave. Manchester...');
-  const [destinationLocation, setDestinationLocation] = useState('2118 Thornridge Cir. Syracuse...');
+const SelectRhyde = () => {
+  const params = useLocalSearchParams();
+  const [location, setLocation] = useState(null);
+  const [rideLocation, setRideLocation] = useState(null);
   const [rideTime] = useState('Now');
   const [showPaymentMethodModal, setShowPaymentMethodModal] = useState(false);
   const [showPromotionsModal, setShowPromotionsModal] = useState(false);
@@ -64,8 +64,6 @@ const SelectLocation = () => {
 
   const rideScheduleOptions = generateRideScheduleOptions();
 
-
-  // Generic Modal Component
   const CustomModal = ({ visible, onClose, children, title }) => (
     <Modal animationType="slide" transparent={true} visible={visible} onRequestClose={onClose}>
       <View style={styles.modalOverlay}>
@@ -85,6 +83,20 @@ const SelectLocation = () => {
     </Modal>
   );
 
+  useEffect(() => {
+    if (params?.currentLocation && params?.destination) {
+      try {
+        const userLocation = JSON.parse(params.currentLocation);
+        const receivedDestination = JSON.parse(params.destination);
+        console.log(receivedDestination, 'receivedDestination')
+        setRideLocation(receivedDestination);
+        setLocation(userLocation);
+      } catch (error) {
+        console.error('Failed to parse route parameters:', error);
+      }
+    }
+  }, []);
+
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
@@ -95,18 +107,20 @@ const SelectLocation = () => {
             <MaterialCommunityIcons name="target" size={20} color="#FFD700" />
             <TextInput
               style={styles.textInput}
-              value={pickupLocation}
-              onChangeText={setPickupLocation}
+              value={rideLocation?.dropOfAddress}
               placeholderTextColor="#AAA"
+              numberOfLines={1}
+              ellipsizeMode="tail"
             />
           </View>
           <View style={styles.inputRow}>
             <MaterialCommunityIcons name="map-marker" size={20} color="#FFF" />
             <TextInput
               style={styles.textInput}
-              value={destinationLocation}
-              onChangeText={setDestinationLocation}
+              value={rideLocation?.pickupAddress}
               placeholderTextColor="#AAA"
+              numberOfLines={1}
+              ellipsizeMode="tail"
             />
             <TouchableOpacity style={styles.nowButton}>
               <Text style={styles.nowButtonText}>{rideTime}</Text>
@@ -141,23 +155,22 @@ const SelectLocation = () => {
         </View>
 
         {/* Action Buttons */}
-        <TouchableOpacity onPress={()=>{router.push("/home/booking/rhydes")}} style={styles.findRydeButton}>
+        <TouchableOpacity onPress={() => { router.push("/home/booking/rhydes") }} style={styles.findRydeButton}>
           <Text style={styles.findRydeButtonText}>Find ryde</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={()=>{router.push("/home")}} style={styles.cancelButton}>
+        <TouchableOpacity onPress={() => { router.push("/home") }} style={styles.cancelButton}>
           <Text style={styles.cancelButtonText}>Cancel</Text>
         </TouchableOpacity>
 
         {/* Map Section */}
-        <View style={styles.mapContainer}>
-          <Image source={mapImg} style={styles.mapImage} resizeMode="cover" />
-          <View style={styles.mapOverlay}>
-            <MaterialCommunityIcons name="map-marker" size={30} color="#FFD700" />
+        {!location ? (
+          <View style={[styles.mapContainer, { justifyContent: 'center', alignItems: 'center', backgroundColor: "#000" }]}>
+            <Text style={{ color: '#fff', fontSize: 16, }}>Map loading...</Text>
           </View>
-          <TouchableOpacity style={styles.bookmarkButton}>
-            <FontAwesome name="bookmark-o" size={24} color="#FFF" />
-          </TouchableOpacity>
-        </View>
+        ) : (
+          <Map mapContainer={styles.mapContainer} location={location} />
+        )}
+
       </ScrollView>
 
       {/* Payment Method Modal */}
@@ -220,7 +233,7 @@ const SelectLocation = () => {
 
 
       {/* Choose Ryder Modal */}
-      <CustomModal visible={showRyderModal} onClose={() => setShowRyderModal(false)}title="Choose ryder">
+      <CustomModal visible={showRyderModal} onClose={() => setShowRyderModal(false)} title="Choose ryder">
         {ryderOptions.map((ryder) => (
           <TouchableOpacity
             key={ryder.id}
@@ -275,6 +288,7 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 16,
     marginLeft: 10,
+    opacity: 0.6
   },
   nowButton: {
     flexDirection: 'row',
@@ -380,7 +394,7 @@ const styles = StyleSheet.create({
   modalHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent:"space-between",
+    justifyContent: "space-between",
     padding: 20,
     borderBottomWidth: 1,
     borderBottomColor: '#333',
@@ -391,8 +405,8 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     color: '#FFF',
-    flex:1,
-    textAlign:"center"
+    flex: 1,
+    textAlign: "center"
   },
   modalScrollView: {
     paddingHorizontal: 20,
@@ -507,4 +521,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default SelectLocation;
+export default SelectRhyde;

@@ -9,7 +9,13 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "config": {
+        "googleMapsApiKey": "AIzaSyA0P_pnW6OWas9hZhiEOt0qJ8hSopz_91s"
+      },
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "This app requires access to your location to show nearby drivers and provide location-based services."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -17,7 +23,16 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.talhadev767.Rhyde"
+      "package": "com.talhadev767.Rhyde",
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ],
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyA0P_pnW6OWas9hZhiEOt0qJ8hSopz_91s"
+        }
+      }
     },
     "web": {
       "bundler": "metro",

@@ -71,8 +71,6 @@ const SelectRhyde = () => {
     fetchDrivers();
   }, []);
 
-  console.log(availableDriver,'availableDriver')
-
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollViewContent}>

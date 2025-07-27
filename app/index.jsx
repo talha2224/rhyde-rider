@@ -13,8 +13,6 @@ const DefaultScreen = () => {
       const userId = await AsyncStorage.getItem('userId');
       if (userId) {
         try {
-          console.log(userId, 'userId')
-          console.log(`${config.baseUrl}/booking/ongoing?riderId=${userId}`)
           let isBookingExits = await axios.get(`${config.baseUrl}/booking/ongoing?riderId=${userId}`)
           if (isBookingExits.data?.data) {
             router.push({ pathname: "/home/booking/activebooking", params: { bookingData: JSON.stringify(isBookingExits?.data?.data) }, });

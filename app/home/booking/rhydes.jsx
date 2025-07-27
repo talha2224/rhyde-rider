@@ -78,7 +78,6 @@ const SelectRhydes = () => {
         }
         else {
           let response = await axios.post(`${config.baseUrl}/transaction`, { riderId: booking?.riderId?._id, driverId: booking?.driverId?._id, type: "ride payment", amount: booking?.fare })
-          console.log(response.data.data,'transaction hitsory')
           if (response.data.data) {
             router.push({
               pathname: "/home/booking/activebooking",

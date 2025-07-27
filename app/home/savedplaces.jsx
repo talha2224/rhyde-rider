@@ -29,8 +29,6 @@ const SavedPlaces = () => {
   };
 
   const handleDeletePlace = (id) => {
-    console.log('Delete place with ID:', id);
-    // Implement actual deletion logic (e.g., remove from state/API)
     alert(`Deleting place ${id}`); // Replace with proper UI feedback
   };
 

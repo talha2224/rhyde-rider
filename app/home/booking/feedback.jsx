@@ -20,8 +20,6 @@ const Feedback = () => {
   };
 
   const handleSubmitFeedback = () => {
-    console.log('Selected Reasons:', feedbackReasons);
-    console.log('Other Reason:', otherReason);
     router.push("/home");
   };
 

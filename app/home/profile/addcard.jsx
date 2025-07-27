@@ -10,8 +10,6 @@ const AddCard = () => {
   const [cvv, setCvv] = useState('');
 
   const handleSaveCard = () => {
-    console.log('Saving Card:', { cardNumber, cardName, expiryDate, cvv });
-    // Implement save card logic (e.g., send to API, add to local state/storage)
     ToastAndroid.show('Card Saved!',ToastAndroid.SHORT); // Replace with proper UI feedback
     router.back(); // Navigate back after saving
   };

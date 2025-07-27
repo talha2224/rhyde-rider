@@ -28,7 +28,6 @@ const Credit = () => {
   const fetchWallet = async (uid) => {
     try {
       const res = await axios.get(`${config.baseUrl}/wallet/history/rider/${uid}`);
-      console.log(res.data?.data)
       setWallet(res.data?.data[0]);
     } catch (err) {
       console.error('Error fetching wallet:', err);

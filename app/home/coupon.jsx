@@ -13,13 +13,11 @@ const Coupon = () => {
   ];
 
   const handleApplyCoupon = () => {
-    console.log('Applying coupon:', promoCode);
     ToastAndroid.show("Coupon applied",ToastAndroid.SHORT)
     router.back()
   };
 
   const copyCodeToClipboard = (code) => {
-    console.log(`Copied code: ${code}`);
     alert(`Code copied: ${code}`);
   };
 

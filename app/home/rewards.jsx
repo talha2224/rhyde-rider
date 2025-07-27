@@ -33,10 +33,6 @@ const Rewards = () => {
   ];
 
   const copyReferralCodeToClipboard = (code) => {
-    // In a real Expo app, you'd use Clipboard from expo-clipboard
-    // import * as Clipboard from 'expo-clipboard';
-    // Clipboard.setStringAsync(code);
-    console.log(`Copied referral code: ${code}`);
     alert(`Referral code copied: ${code}`); // Using alert for demonstration, replace with proper UI feedback
   };
 

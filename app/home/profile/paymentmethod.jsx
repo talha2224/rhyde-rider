@@ -14,7 +14,6 @@ const PaymentMethods = () => {
         if (method.id === '1') {
             router.push('/home/profile/addcard');
         }
-        console.log('Selected payment method:', method.name);
     };
 
     return (

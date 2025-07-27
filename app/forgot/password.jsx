@@ -25,7 +25,6 @@ const Password = () => {
     const { email } = useLocalSearchParams();
 
     const handleNext = async () => {
-        console.log(email,'email')
         if (!password || !confirmPassword) {
             Toast.show({
                 type: 'error',

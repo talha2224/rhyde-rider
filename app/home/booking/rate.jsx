@@ -24,8 +24,6 @@ const Rate = () => {
                 stars:rating,
                 message:feedback,
             });
-            console.log(res,'res')
-
             ToastAndroid.show("Review submitted successfully", ToastAndroid.SHORT);
             router.push({pathname:"/home/booking/tip",params:{bookingData:JSON.stringify(bookingDetails)}});
         } catch (error) {

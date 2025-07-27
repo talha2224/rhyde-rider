@@ -138,10 +138,9 @@ export const transactionsData = [
 ];
 
 export const paymentMethods = [
-  { id: "1", name: "Paypal" },
-  { id: "2", name: "Credit card/ Debit" },
+  { id: "1", name: "Credit Debit Card" },
+  { id: "2", name: "Cash" },
   { id: "3", name: "Ryde Credits" },
-  { id: "4", name: "Maurice" }, // As per image
 ];
 
 export const ryderOptions = [
@@ -194,7 +193,7 @@ export const rydesData = [
     distance: "10 Mins away",
     reviews: 120,
     price: "$34.60",
-    color:  "#FBB73A",
+    color: "#FBB73A",
   },
   {
     id: "3",
@@ -202,7 +201,7 @@ export const rydesData = [
     distance: "10 Mins away",
     reviews: 120,
     price: "$34.60",
-    color:  "#FBB73A",
+    color: "#FBB73A",
   },
   {
     id: "4",
@@ -210,7 +209,7 @@ export const rydesData = [
     distance: "10 Mins away",
     reviews: 120,
     price: "$34.60",
-    color:  "#FBB73A",
+    color: "#FBB73A",
   },
 ];
 
@@ -256,4 +255,56 @@ export const cancellationReasons = [
   { id: "4", text: "I don't want the ryde" },
   { id: "5", text: "Driver denied coming to pickup" },
   { id: "6", text: "Others" },
+];
+
+export const screens = [
+  "index",
+  "onboarding",
+  "signup",
+  "signin",
+  "setup/index",
+  "setup/phone",
+  "setup/otp",
+  "setup/upload",
+  "setup/payment",
+  "setup/emergency",
+  "forgot/index",
+  "forgot/otp",
+  "forgot/password",
+  "home/index",
+  "home/activities",
+  "home/wallet",
+  "home/rewards",
+  "home/rideHistory",
+  "home/notification",
+  "home/rhydes",
+  "home/transactions",
+  "home/credit",
+  "home/loyality",
+  "home/coupon",
+  "home/deposit",
+  "home/milestones",
+  "home/mlm",
+  "home/chat",
+  "home/savedplaces",
+  "home/addaddress",
+  "home/booking/index",
+  "home/booking/activebooking",
+  "home/booking/cancelled",
+  "home/booking/feedback",
+  "home/booking/rate",
+  "home/booking/tip",
+  "home/profile/profile",
+  "home/profile/singleprofile",
+  "home/profile/notification",
+  "home/profile/setting",
+  "home/profile/language",
+  "home/profile/emergency",
+  "home/profile/paymentmethod",
+  "home/profile/addcard",
+  "home/profile/gift",
+  "home/profile/support",
+  "home/profile/subscription",
+  "home/profile/report",
+  "+not-found",
 ];

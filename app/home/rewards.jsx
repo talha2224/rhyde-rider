@@ -54,9 +54,9 @@ const Rewards = () => {
             <Text style={styles.referralsLabel}>Your referrals</Text>
             <Text style={styles.referralsCount}>2</Text>
           </View>
-          <TouchableOpacity style={styles.viewRewardsButton}>
+          {/* <TouchableOpacity style={styles.viewRewardsButton}>
             <Text style={styles.viewRewardsButtonText}>View rewards</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
 
         {/* Referral Code Section */}

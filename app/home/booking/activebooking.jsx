@@ -1,29 +1,51 @@
 import { AntDesign, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { router } from 'expo-router';
-import { useState } from 'react';
-import { Dimensions, Image, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import driverProfile from '../../../assets/images/bookings/driver.png';
-import mapImg from '../../../assets/images/home/map.png';
+import { router, useLocalSearchParams } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { Dimensions, Image, Linking, Modal, ScrollView, StyleSheet, Text, TextInput, ToastAndroid, TouchableOpacity, View } from 'react-native';
+import MapView, { Marker, Polyline } from 'react-native-maps';
+import Toast from 'react-native-toast-message';
 import { BOOKING_STATES, driverDetails, priceConfirmationDetails, rideDetails } from '../../../constants/constant';
+import { useSocket } from '../../../contexts/SocketContext';
+import { darkMapStyle } from '../../../style/dark.map.style';
 
-const { height, width } = Dimensions.get('window');
+const { height } = Dimensions.get('window');
 
 const ActiveBooking = () => {
-    // Define booking states
 
-    const [currentBookingState, setCurrentBookingState] = useState(BOOKING_STATES.AWAITING_DRIVER);
+    const { getSocket } = useSocket();
+    const [currentBookingState, setCurrentBookingState] = useState(BOOKING_STATES.DRIVER_ARRIVED);
+    const params = useLocalSearchParams();
+    const [bookingDetails, setBookingDetails] = useState(null);
+
+    // LOCATIONS 
+    const [pickupLocation, setPickupLocation] = useState(null);
+    const [dropOffLocation, setDropOffLocation] = useState(null);
+    const [driverLocation, setDriverLocation] = useState(null)
+
+
+
+
+
     const [showAddStopModal, setShowAddStopModal] = useState(false);
     const [showPriceConfirmationModal, setShowPriceConfirmationModal] = useState(false);
     const [showStopAddedModal, setShowStopAddedModal] = useState(false);
     const [showRydeCompletedModal, setShowRydeCompletedModal] = useState(false);
 
 
+    const handleCallPress = () => {
+        const phoneNumber = `tel:${bookingDetails?.driverId?.phone_number}`;
+        Linking.openURL(phoneNumber).catch(err => console.error('Failed to open dialer:', err));
+    };
+
+
+
+
     const BookingHeader = ({ title, showSave = false, showShare = false }) => (
         <View style={styles.header}>
-            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            {/* <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
                 <AntDesign name="arrowleft" size={24} color="#FFF" />
-            </TouchableOpacity>
-            <Text style={styles.headerTitle}>{title}</Text>
+            </TouchableOpacity> */}
+            <Text style={styles.headerTitle}>Ride Inprogress</Text>
             <View style={styles.headerIcons}>
                 {showSave && (
                     <TouchableOpacity style={styles.headerIcon}>
@@ -39,29 +61,6 @@ const ActiveBooking = () => {
         </View>
     );
 
-    // Reusable Map Section
-    const MapSection = () => (
-        <View style={styles.mapContainer}>
-            <Image source={mapImg} style={styles.mapImage} resizeMode="cover" />
-            {/* Dynamic elements on map based on state */}
-            {currentBookingState === BOOKING_STATES.AWAITING_DRIVER && (
-                <View style={styles.driverOnMap}>
-                    <MaterialCommunityIcons name="car-outline" size={30} color="#FFD700" />
-                </View>
-            )}
-            {(currentBookingState === BOOKING_STATES.AWAITING_DRIVER || currentBookingState === BOOKING_STATES.DRIVER_ARRIVED || currentBookingState === BOOKING_STATES.LIVE_TRACKING) && (
-                <View style={styles.destinationMarker}>
-                    <MaterialCommunityIcons name="map-marker" size={30} color="#FFD700" />
-                </View>
-            )}
-            {currentBookingState === BOOKING_STATES.LIVE_TRACKING && (
-                <TouchableOpacity style={styles.alertIcon}>
-                    <AntDesign name="exclamationcircle" size={24} color="#FF6347" />
-                </TouchableOpacity>
-            )}
-        </View>
-    );
-
     const renderAwaitingDriver = () => (
         <View style={styles.bottomSheet}>
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
@@ -69,15 +68,15 @@ const ActiveBooking = () => {
                 <Text style={styles.arrivalTime}>{driverDetails.arrivalTime}</Text>
             </View>
             <View style={styles.driverInfo}>
-                <Image source={driverProfile} style={styles.driverAvatar} />
+                <Image source={{ uri: bookingDetails?.driverId?.profile_img }} style={styles.driverAvatar} />
                 <View style={styles.driverTextDetails}>
-                    <Text style={styles.driverName}>{driverDetails.name}</Text>
+                    <Text style={styles.driverName}>{bookingDetails?.driverId?.name}</Text>
                     <View style={styles.driverRating}>
                         <AntDesign name="star" size={14} color="#FFD700" />
                         <Text style={styles.driverRatingText}>{driverDetails.rating} ({driverDetails.rides} rides)</Text>
                     </View>
                 </View>
-                <TouchableOpacity onPress={()=>{router.push("/home/chat")}} style={styles.contactButton}>
+                <TouchableOpacity onPress={() => { router.push("/home/chat") }} style={styles.contactButton}>
                     <Ionicons name="chatbubble-outline" size={24} color="#FFD700" />
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.contactButton}>
@@ -88,19 +87,19 @@ const ActiveBooking = () => {
             <View style={styles.carDetailsContainer}>
                 <View>
                     <Text style={styles.carDetailLabel}>Car Model</Text>
-                    <Text style={styles.carDetailValue}>{driverDetails.carModel}</Text>
+                    <Text style={styles.carDetailValue}>{bookingDetails?.driverId?.model}</Text>
                 </View>
                 <View>
                     <Text style={styles.carDetailLabel}>License number</Text>
-                    <Text style={styles.carDetailValue}>{driverDetails.licenseNumber}</Text>
+                    <Text style={styles.carDetailValue}>{bookingDetails?.driverId?.license_plate_number}</Text>
                 </View>
                 <View>
                     <Text style={styles.carDetailLabel}>Seats</Text>
-                    <Text style={styles.carDetailValue}>{driverDetails.seats}</Text>
+                    <Text style={styles.carDetailValue}>{4}</Text>
                 </View>
                 <View>
                     <Text style={styles.carDetailLabel}>Color</Text>
-                    <Text style={styles.carDetailValue}>{driverDetails.color}</Text>
+                    <Text style={styles.carDetailValue}>{bookingDetails?.driverId?.color}</Text>
                 </View>
             </View>
             <TouchableOpacity style={styles.actionButton} onPress={() => router.push("/home/booking/cancelled")}>
@@ -112,25 +111,25 @@ const ActiveBooking = () => {
         </View>
     );
 
+
     const renderDriverArrived = () => (
         <View style={styles.bottomSheet}>
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
                 <Text style={styles.sheetTitle}>Driver arrived</Text>
-                <Text style={styles.arrivalTime}>{driverDetails.arrivalTime}</Text>
             </View>
             <View style={styles.driverInfo}>
-                <Image source={driverProfile} style={styles.driverAvatar} />
+                <Image source={{ uri: bookingDetails?.driverId?.profile_img }} style={styles.driverAvatar} />
                 <View style={styles.driverTextDetails}>
-                    <Text style={styles.driverName}>{driverDetails.name}</Text>
+                    <Text style={styles.driverName}>{bookingDetails?.driverId?.name}</Text>
                     <View style={styles.driverRating}>
                         <AntDesign name="star" size={14} color="#FFD700" />
                         <Text style={styles.driverRatingText}>{driverDetails.rating} ({driverDetails.rides} rides)</Text>
                     </View>
                 </View>
-                <TouchableOpacity onPress={()=>{router.push("/home/chat")}} style={styles.contactButton}>
+                <TouchableOpacity onPress={() => { router.push("/home/chat") }} style={styles.contactButton}>
                     <Ionicons name="chatbubble-outline" size={24} color="#FFD700" />
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.contactButton}>
+                <TouchableOpacity onPress={handleCallPress} style={styles.contactButton}>
                     <Ionicons name="call-outline" size={24} color="#FFD700" />
                 </TouchableOpacity>
             </View>
@@ -139,24 +138,25 @@ const ActiveBooking = () => {
             <View style={styles.carDetailsContainer}>
                 <View>
                     <Text style={styles.carDetailLabel}>Car Model</Text>
-                    <Text style={styles.carDetailValue}>{driverDetails.carModel}</Text>
+                    <Text style={styles.carDetailValue}>{bookingDetails?.driverId?.model}</Text>
                 </View>
                 <View>
                     <Text style={styles.carDetailLabel}>License number</Text>
-                    <Text style={styles.carDetailValue}>{driverDetails.licenseNumber}</Text>
+                    <Text style={styles.carDetailValue}>{bookingDetails?.driverId?.license_plate_number}</Text>
                 </View>
                 <View>
                     <Text style={styles.carDetailLabel}>Seats</Text>
-                    <Text style={styles.carDetailValue}>{driverDetails.seats}</Text>
+                    <Text style={styles.carDetailValue}>{4}</Text>
                 </View>
                 <View>
                     <Text style={styles.carDetailLabel}>Color</Text>
-                    <Text style={styles.carDetailValue}>{driverDetails.color}</Text>
+                    <Text style={styles.carDetailValue}>{bookingDetails?.driverId?.color}</Text>
                 </View>
             </View>
-            <TouchableOpacity style={styles.actionButton} onPress={() => setCurrentBookingState(BOOKING_STATES.LIVE_TRACKING)}>
-                <Text style={styles.actionButtonText}>Start trip</Text>
-            </TouchableOpacity>
+
+            {/* <TouchableOpacity style={styles.actionButton} onPress={() => setCurrentBookingState(BOOKING_STATES.LIVE_TRACKING)}>
+                <Text style={styles.actionButtonText}>Complete Trip</Text>
+            </TouchableOpacity> */}
         </View>
     );
 
@@ -220,7 +220,7 @@ const ActiveBooking = () => {
                                     placeholderTextColor="#AAA"
                                 />
                             </View>
-                            <TouchableOpacity onPress={()=>router.push("/home/savedplaces")} style={styles.savedPlacesButton}>
+                            <TouchableOpacity onPress={() => router.push("/home/savedplaces")} style={styles.savedPlacesButton}>
                                 <MaterialCommunityIcons name="send" size={20} color="#FFD700" />
                                 <Text style={styles.savedPlacesText}>Saved places</Text>
                                 <AntDesign name="right" size={16} color="#AAA" />
@@ -286,7 +286,7 @@ const ActiveBooking = () => {
                     <MaterialCommunityIcons name="wallet-outline" size={60} color="#FFD700" style={styles.centerModalIcon} />
                     <Text style={styles.centerModalTitle}>Stop has been added</Text>
                     <Text style={styles.centerModalDescription}>Your additional stop has been confirmed. {'\n'}Your driver will adjust the route accordingly.</Text>
-                    <TouchableOpacity style={styles.centerModalButton} onPress={() => { setShowStopAddedModal(false);}}>
+                    <TouchableOpacity style={styles.centerModalButton} onPress={() => { setShowStopAddedModal(false); }}>
                         <Text style={styles.centerModalButtonText}>Okay, Got it!</Text>
                     </TouchableOpacity>
                 </View>
@@ -308,13 +308,56 @@ const ActiveBooking = () => {
                     <Text style={styles.centerModalDescription}>
                         We hope you had a smooth journey. Let us {'\n'}know how your driver did!
                     </Text>
-                    <TouchableOpacity style={styles.centerModalButton} onPress={() => {setShowRydeCompletedModal(false);router.push("/home/booking/rate")}}>
+                    <TouchableOpacity style={styles.centerModalButton} onPress={() => { setShowRydeCompletedModal(false); router.push({pathname:"/home/booking/rate",params:{bookingData:JSON.stringify(bookingDetails)}}) }}>
                         <Text style={styles.centerModalButtonText}>Rate driver</Text>
                     </TouchableOpacity>
                 </View>
             </View>
         </Modal>
     );
+
+
+    // PARAMS 
+    useEffect(() => {
+        if (params?.bookingData) {
+            const bookingData = JSON.parse(params?.bookingData);
+            setPickupLocation(bookingData?.pickupCoordinates)
+            setDropOffLocation(bookingData?.dropOffCoordinates)
+            setDriverLocation(bookingData?.dropOffCoordinates)
+            setBookingDetails(bookingData)
+        }
+        else {
+            ToastAndroid.show("No booking rydes", ToastAndroid.SHORT);
+            router.back();
+        }
+    }, []);
+
+    // SOCKET EVENTS FOR RIDE STATUS AND DRIVER UPDATED LOCATION
+    useEffect(() => {
+        const socket = getSocket();
+        if (!socket) return;
+
+        socket.on("rideCompleted", (booking) => {
+            Toast.show({
+                type: "success",
+                text1: "Ride completed",
+                text2: "Thanks for chosing rhyde",
+            });
+            setTimeout(() => {
+                setShowRydeCompletedModal(true)
+            }, 2000);
+        });
+
+        socket.on("driverLocationUpdate", (data) => {
+            console.log("driver location via socket:", data);
+            setDriverLocation(data);
+        });
+
+        return () => {
+            socket.off("rideCompleted");
+            socket.off("bookingCancelled");
+        };
+    }, [getSocket]);
 
 
     return (
@@ -325,7 +368,53 @@ const ActiveBooking = () => {
             {currentBookingState === BOOKING_STATES.LIVE_TRACKING && <BookingHeader title="Live tracking" showShare={true} />}
 
             {/* Map Section - always visible */}
-            <MapSection />
+
+            {
+                pickupLocation && dropOffLocation && driverLocation ? (
+                    <MapView
+                        style={styles.mapContainer}
+                        initialRegion={{
+                            latitude: pickupLocation?.latitude || 0,
+                            longitude: pickupLocation?.longitude || 0,
+                            latitudeDelta: 0.05,
+                            longitudeDelta: 0.05,
+                        }}
+                        showsUserLocation
+                        showsMyLocationButton={false}
+                        customMapStyle={darkMapStyle}
+                    >
+                        {/* 📍 User Pickup Location */}
+                        <Marker coordinate={pickupLocation}>
+                            <MaterialCommunityIcons name="map-marker" size={30} color="gold" />
+                        </Marker>
+
+                        {/* 🚘 Driver Location */}
+                        <Marker coordinate={driverLocation}>
+                            <MaterialCommunityIcons name="car" size={26} color="gold" />
+                        </Marker>
+
+                        {/* 🎯 Drop-off Location */}
+                        <Marker coordinate={dropOffLocation}>
+                            <MaterialCommunityIcons name="flag-checkered" size={26} color="gold" />
+                        </Marker>
+
+                        {/* 🛣️ Polyline: Driver → Pickup → Drop-off */}
+                        <Polyline
+                            coordinates={[
+                                driverLocation,
+                                pickupLocation,
+                                dropOffLocation
+                            ]}
+                            strokeColor="gold" // Line color
+                            strokeWidth={1}     // Line thickness
+                        />
+                    </MapView>
+                ) : (
+                    <Text>Loading Map</Text>
+                )
+            }
+
+
 
             {/* Conditionally rendered bottom sheets based on state */}
             {currentBookingState === BOOKING_STATES.AWAITING_DRIVER && renderAwaitingDriver()}
@@ -372,18 +461,12 @@ const styles = StyleSheet.create({
     mapContainer: {
         flex: 1,
         borderRadius: 15,
-        overflow: 'hidden',
         marginHorizontal: 20,
         marginTop: 10,
         marginBottom: 10,
         justifyContent: 'center',
         alignItems: 'center',
         position: 'relative',
-    },
-    mapImage: {
-        width: '100%',
-        height: '100%',
-        position: 'absolute',
     },
     driverOnMap: {
         position: 'absolute',
@@ -633,7 +716,7 @@ const styles = StyleSheet.create({
     centerModalOverlay: {
         flex: 1,
         backgroundColor: 'rgba(0, 0, 0, 0.7)',
-        justifyContent:'flex-end',
+        justifyContent: 'flex-end',
         alignItems: 'center',
     },
     centerModalContent: {
@@ -643,7 +726,7 @@ const styles = StyleSheet.create({
         padding: 30,
         marginHorizontal: 40,
         alignItems: 'center',
-        width:"100%"
+        width: "100%"
     },
     centerModalIcon: {
         marginBottom: 20,
@@ -666,9 +749,9 @@ const styles = StyleSheet.create({
         backgroundColor: '#FFD700',
         borderRadius: 15,
         alignItems: 'center',
-        height:60,
-        width:"100%",
-        justifyContent:"center",
+        height: 60,
+        width: "100%",
+        justifyContent: "center",
     },
     centerModalButtonText: {
         color: '#1C1A1B',

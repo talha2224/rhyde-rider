@@ -1,10 +1,18 @@
 import { AntDesign, MaterialCommunityIcons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useStripe } from '@stripe/stripe-react-native';
+import axios from 'axios';
 import { router } from 'expo-router';
-import { useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ScrollView, StyleSheet, Text, ToastAndroid, TouchableOpacity, View } from 'react-native';
+import config from '../../config';
 
 const Deposit = () => {
   const [amount, setAmount] = useState('');
+  const stripe = useStripe();
+
+  const [userId, setUserId] = useState(null);
+
 
   const handleKeyPress = (key) => {
     if (key === 'backspace') {
@@ -29,6 +37,54 @@ const Deposit = () => {
     ['7', '8', '9'],
     ['.', '0', 'backspace'],
   ];
+
+  const handleTopUp = async () => {
+    if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
+      ToastAndroid.show("Select a valid amount", ToastAndroid.SHORT);
+      return;
+    }
+    try {
+      const cents = Math.floor(parseFloat(amount) * 100);
+      const res = await axios.post(`${config.baseUrl}/payment/create`, {
+        amount: cents,
+        id: userId
+      });
+
+      const clientSecret = res.data?.clientSecret;
+      const init = await stripe.initPaymentSheet({ merchantDisplayName: "driver", paymentIntentClientSecret: clientSecret });
+      if (init.error) {
+        throw new Error(init.error.message);
+      }
+
+      const paymentResult = await stripe.presentPaymentSheet();
+      if (paymentResult.error) {
+        throw new Error(paymentResult.error.message);
+      }
+
+      // Success — Record transaction
+      await axios.post(`${config.baseUrl}/transaction`, {
+        riderId: userId,
+        amount: parseFloat(amount),
+        type: "topup for rider"
+      });
+
+      ToastAndroid.show("Top-up Successful!", ToastAndroid.SHORT);
+      setAmount('');
+
+    } catch (err) {
+      console.error("Top-up error:", err);
+      ToastAndroid.show(err.message || "Payment failed", ToastAndroid.SHORT);
+    } finally {
+    }
+  };
+
+  useEffect(() => {
+    const init = async () => {
+      const uid = await AsyncStorage.getItem("userId");
+      setUserId(uid);
+    };
+    init();
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -72,7 +128,7 @@ const Deposit = () => {
         </TouchableOpacity>
 
         {/* Top-up Button */}
-        <TouchableOpacity style={styles.topUpButton}>
+        <TouchableOpacity style={styles.topUpButton} onPress={handleTopUp}>
           <Text style={styles.topUpButtonText}>Top-up</Text>
         </TouchableOpacity>
       </ScrollView>

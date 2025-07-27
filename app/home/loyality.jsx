@@ -1,6 +1,6 @@
 import { AntDesign, MaterialCommunityIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, ToastAndroid, TouchableOpacity, View } from 'react-native';
 
 const Loyalty = () => {
   const rewardsData = [
@@ -55,7 +55,7 @@ const Loyalty = () => {
                 <Text style={styles.rewardTitle}>{reward.title}</Text>
                 <Text style={styles.rewardPoints}>{reward.points}</Text>
               </View>
-              <TouchableOpacity style={styles.redeemButton}>
+              <TouchableOpacity onPress={()=>{ToastAndroid.show("Redeem sucessfull",ToastAndroid.SHORT);router.back()}} style={styles.redeemButton}>
                 <Text style={styles.redeemButtonText}>Redeem</Text>
               </TouchableOpacity>
             </View>

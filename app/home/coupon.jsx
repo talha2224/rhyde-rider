@@ -1,7 +1,7 @@
 import { AntDesign } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, TextInput, ToastAndroid, TouchableOpacity, View } from 'react-native';
 
 const Coupon = () => {
   const [promoCode, setPromoCode] = useState('');
@@ -13,18 +13,14 @@ const Coupon = () => {
   ];
 
   const handleApplyCoupon = () => {
-    // Implement coupon application logic here
     console.log('Applying coupon:', promoCode);
-    // You might want to add a success/error message or navigate
+    ToastAndroid.show("Coupon applied",ToastAndroid.SHORT)
+    router.back()
   };
 
   const copyCodeToClipboard = (code) => {
-    // In a real Expo app, you'd use Clipboard from expo-clipboard
-    // import * as Clipboard from 'expo-clipboard';
-    // Clipboard.setStringAsync(code);
     console.log(`Copied code: ${code}`);
-    // You might want to show a toast message indicating success
-    alert(`Code copied: ${code}`); // Using alert for demonstration, replace with proper UI feedback
+    alert(`Code copied: ${code}`);
   };
 
   return (

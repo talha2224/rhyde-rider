@@ -1,66 +1,82 @@
-import { AntDesign, MaterialCommunityIcons } from '@expo/vector-icons';
-import { router } from 'expo-router';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { notificationsData } from '../../constants/constant';
+import { AntDesign } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
+import { router, useFocusEffect } from 'expo-router';
+import moment from 'moment';
+import { useCallback, useState } from 'react';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import config from '../../config';
 
 const Notification = () => {
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
 
+  const fetchNotifications = useCallback(async () => {
+    try {
+      setLoading(true);
+      const userId = await AsyncStorage.getItem('userId');
+      const res = await axios.get(`${config.baseUrl}/notifications`, {
+        params: {
+          userId,
+          role: 'rider', // since this is rider app
+        },
+      });
+
+      setNotifications(res.data || []);
+    } catch (err) {
+      console.error("❌ Error fetching notifications:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchNotifications();
+    }, [fetchNotifications])
+  );
 
   const getNotificationIcon = (type) => {
-    switch (type) {
-      case 'payment_success':
-        return <AntDesign name="checkcircle" size={20} color="#FFD700" />;
-      case 'new_services':
-        return <MaterialCommunityIcons name="briefcase" size={20} color="#FFD700" />;
-      default:
-        return <AntDesign name="questioncircleo" size={20} color="#FFD700" />;
-    }
+    return <AntDesign name="checkcircle" size={20} color="#FFD700" />;
   };
 
-  const renderNotifications = () => {
-    const todayNotifications = notificationsData.filter(item => item.category === 'today');
-    const yesterdayNotifications = notificationsData.filter(item => item.category === 'yesterday');
+  const groupNotifications = () => {
+    const today = [];
+    const yesterday = [];
+    const others = [];
 
-    return (
-      <View>
-        {/* Today's Notifications */}
-        {todayNotifications.length > 0 && (
-          <View style={styles.notificationGroup}>
-            <Text style={styles.notificationGroupTitle}>Today</Text>
-            {todayNotifications.map((item) => (
-              <View key={item.id} style={styles.notificationItem}>
-                <View style={styles.notificationIconContainer}>
-                  {getNotificationIcon(item.type)}
-                </View>
-                <View style={styles.notificationDetails}>
-                  <Text style={styles.notificationTitle}>{item.title}</Text>
-                  <Text style={styles.notificationDescription}>{item.description}</Text>
-                </View>
-              </View>
-            ))}
-          </View>
-        )}
+    notifications.forEach((item) => {
+      const createdDate = moment(item.createdAt);
+      if (createdDate.isSame(moment(), 'day')) {
+        today.push(item);
+      } else if (createdDate.isSame(moment().subtract(1, 'day'), 'day')) {
+        yesterday.push(item);
+      } else {
+        others.push(item);
+      }
+    });
 
-        {/* Yesterday's Notifications */}
-        {yesterdayNotifications.length > 0 && (
-          <View style={styles.notificationGroup}>
-            <Text style={styles.notificationGroupTitle}>Yesterday</Text>
-            {yesterdayNotifications.map((item) => (
-              <View key={item.id} style={styles.notificationItem}>
-                <View style={styles.notificationIconContainer}>
-                  {getNotificationIcon(item.type)}
-                </View>
-                <View style={styles.notificationDetails}>
-                  <Text style={styles.notificationTitle}>{item.title}</Text>
-                  <Text style={styles.notificationDescription}>{item.description}</Text>
-                </View>
-              </View>
-            ))}
-          </View>
-        )}
-      </View>
-    );
+    return { today, yesterday, others };
   };
+
+  const renderGroup = (title, items) => (
+    <View style={styles.notificationGroup}>
+      <Text style={styles.notificationGroupTitle}>{title}</Text>
+      {items.map((item) => (
+        <View key={item._id} style={styles.notificationItem}>
+          <View style={styles.notificationIconContainer}>
+            {getNotificationIcon(item.type)}
+          </View>
+          <View style={styles.notificationDetails}>
+            <Text style={styles.notificationTitle}>Payment</Text>
+            <Text style={styles.notificationDescription}>{item.message}</Text>
+          </View>
+        </View>
+      ))}
+    </View>
+  );
+
+  const { today, yesterday, others } = groupNotifications();
 
   return (
     <View style={styles.container}>
@@ -72,13 +88,23 @@ const Notification = () => {
         <Text style={styles.headerTitle}>Notifications</Text>
       </View>
 
-      {/* Notifications List */}
-      <ScrollView style={styles.notificationList}>
-        {renderNotifications()}
-      </ScrollView>
+      {/* Body */}
+      {loading ? (
+        <ActivityIndicator size="large" color="#FFD700" style={{ marginTop: 20 }} />
+      ) : (
+        <ScrollView style={styles.notificationList}>
+          {today.length > 0 && renderGroup("Today", today)}
+          {yesterday.length > 0 && renderGroup("Yesterday", yesterday)}
+          {others.length > 0 && renderGroup("Earlier", others)}
+          {today.length === 0 && yesterday.length === 0 && others.length === 0 && (
+            <Text style={styles.noNotification}>No notifications found</Text>
+          )}
+        </ScrollView>
+      )}
     </View>
   );
 };
+
 
 const styles = StyleSheet.create({
   container: {

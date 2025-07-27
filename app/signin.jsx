@@ -40,7 +40,7 @@ const Signin = () => {
                 type: 'info',
                 text1: 'Logging in...',
                 text2: 'Please wait.',
-                autoHide: false, // prevent auto-dismiss
+                autoHide: false,
             });
 
             const response = await axios.post(`${config.baseUrl}/rider/login`, {
@@ -48,7 +48,7 @@ const Signin = () => {
                 password,
             });
 
-            Toast.hide(); // Hide loading toast
+            Toast.hide()
 
             if (response.status === 200 && response.data?.data?._id) {
                 await AsyncStorage.setItem('userId', response.data.data._id);
@@ -58,7 +58,7 @@ const Signin = () => {
                     text1: 'Login Successful',
                     text2: 'Welcome back!',
                 });
-
+                Toast.hide();
                 router.push('/home');
             } else {
                 Toast.show({

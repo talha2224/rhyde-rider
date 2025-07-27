@@ -1,160 +1,127 @@
 import { AntDesign, MaterialCommunityIcons } from "@expo/vector-icons";
-import { useState } from "react";
-import {
-  Image,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
+import moment from "moment";
+import { useEffect, useMemo, useState } from "react";
+import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import badgeImg from "../../assets/images/home/badge.png";
 import userImg from "../../assets/images/home/user.png";
 import BottomNavbar from "../../components/BottomNavbar";
+import config from '../../config';
 
+const milestonesData = [
+  {
+    id: "1",
+    level: 1,
+    title: "2% off first ryde",
+    reached: true,
+    description: "Level 1",
+  },
+  {
+    id: "2",
+    level: 10,
+    title: "Free ryde for a day",
+    reached: false,
+    description: "Level 10",
+  },
+  {
+    id: "3",
+    level: 20,
+    title: "10% off ryde",
+    reached: true,
+    description: "You're currently in this level",
+  },
+  {
+    id: "4",
+    level: 30,
+    title: "10% off first ryde for 48 hrs",
+    reached: false,
+    description: "Level 30",
+  },
+  {
+    id: "5",
+    level: 40,
+    title: "10% off ryde",
+    reached: false,
+    description: "Level 40",
+  },
+];
 const Activities = () => {
+  const [rideHistory, setRideHistory] = useState([]);
+  const [reviews, setReviews] = useState([]);
   const [activeTab, setActiveTab] = useState("Ryde history");
+  const [loading, setLoading] = useState(true);
 
-  const rydeHistoryData = [
-    {
-      id: "1",
-      userName: "Ryan Mark",
-      userLocation: "United States",
-      price: "$230.78",
-      pickup: "4517 Washington Ave. Manchester...",
-      destination: "2118 Thornridge Cir. Syracuse...",
-      distance: "5.7 Km",
-      date: "15 March, 2025",
-      duration: "30 Mins",
-    },
-    {
-      id: "2",
-      userName: "Ryan Mark",
-      userLocation: "United States",
-      price: "$230.78",
-      pickup: "4517 Washington Ave. Manchester...",
-      destination: "2118 Thornridge Cir. Syracuse...",
-      distance: "5.7 Km",
-      date: "15 March, 2025",
-      duration: "30 Mins",
-    },
-  ];
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        setLoading(true);
+        const userId = await AsyncStorage.getItem('userId');
+        if (!userId) return;
+        const [rideRes, reviewRes] = await Promise.all([
+          axios.get(`${config.baseUrl}/booking/history/all`, { params: { riderId: userId } }),
+          axios.get(`${config.baseUrl}/review`, { params: { riderId: userId } })
+        ]);
+        setRideHistory(rideRes.data.data || []);
+        setReviews(reviewRes.data.data || []);
+      } catch (error) {
+        console.error("Error fetching activities:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
 
-  const reviewsData = {
-    averageRating: 4.5,
-    totalReviews: 12004,
-    ratingsBreakdown: {
-      5: 85,
-      4: 9,
-      3: 4,
-      2: 2,
-      1: 1,
-    },
-    feedback: [
-      {
-        id: "1",
-        userName: "Sammy Mahrex",
-        tripId: "GFD6746DGUFVY3R",
-        date: "30/03/25",
-        comment:
-          "The driver was calm, attentive and straightforward, I will recommend him any day anytime.",
-      },
-      {
-        id: "2",
-        userName: "Jim Hyke",
-        tripId: "GFD6746DGUFVY3R",
-        date: "30/03/25",
-        comment: "Well reserved and composed in nature",
-      },
-    ],
-  };
-
-  const milestonesData = [
-    {
-      id: "1",
-      level: 1,
-      title: "2% off first ryde",
-      reached: true,
-      description: "Level 1",
-    },
-    {
-      id: "2",
-      level: 10,
-      title: "Free ryde for a day",
-      reached: false,
-      description: "Level 10",
-    },
-    {
-      id: "3",
-      level: 20,
-      title: "10% off ryde",
-      reached: true,
-      description: "You're currently in this level",
-    },
-    {
-      id: "4",
-      level: 30,
-      title: "10% off first ryde for 48 hrs",
-      reached: false,
-      description: "Level 30",
-    },
-    {
-      id: "5",
-      level: 40,
-      title: "10% off ryde",
-      reached: false,
-      description: "Level 40",
-    },
-  ];
+  const ratingStats = useMemo(() => {
+    const total = reviews.length;
+    const starCount = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    reviews.forEach(r => { starCount[r.stars] = (starCount[r.stars] || 0) + 1 });
+    const average = total ? (reviews.reduce((a, r) => a + r.stars, 0) / total).toFixed(1) : "0.0";
+    const breakdown = {};
+    for (let i = 5; i >= 1; i--) {
+      breakdown[i] = total ? Math.round((starCount[i] / total) * 100) : 0;
+    }
+    return { average, total, breakdown };
+  }, [reviews]);
 
   const renderContent = () => {
     switch (activeTab) {
       case "Ryde history":
+        if (loading) return <ActivityIndicator size="large" color="#FFD700" style={{ marginTop: 20 }} />;
         return (
           <ScrollView contentContainerStyle={styles.tabContent}>
-            {rydeHistoryData.map((item) => (
-              <View key={item.id} style={styles.rydeHistoryCard}>
+            {rideHistory.map(item => (
+              <View key={item._id} style={styles.rydeHistoryCard}>
                 <View style={styles.rydeHistoryHeader}>
                   <Image source={userImg} style={styles.userImage} />
                   <View style={styles.userInfo}>
-                    <Text style={styles.userName}>{item.userName}</Text>
-                    <Text style={styles.userLocation}>{item.userLocation}</Text>
+                    <Text style={styles.userName}>{item.riderId?.name || "Rider"}</Text>
+                    <Text style={styles.userLocation}>{/* you can add location if available */}</Text>
                   </View>
-                  <Text style={styles.rydePrice}>{item.price}</Text>
+                  <Text style={styles.rydePrice}>${(item.fare + (item.tip || 0)).toFixed(2)}</Text>
                 </View>
                 <Text style={styles.sectionHeading}>Destination</Text>
                 <View style={styles.destinationRow}>
-                  <MaterialCommunityIcons
-                    name="map-marker-outline"
-                    size={20}
-                    color="#FBB73A"
-                  />
-                  <Text style={styles.destinationText}>{item.pickup}</Text>
+                  <MaterialCommunityIcons name="map-marker-outline" size={20} color="#FBB73A" />
+                  <Text style={styles.destinationText}>{item.pickupAddress}</Text>
                 </View>
                 <View style={styles.destinationRow}>
-                  <MaterialCommunityIcons
-                    name="map-marker"
-                    size={20}
-                    color="#FFF"
-                  />
-                  <Text style={styles.destinationText}>{item.destination}</Text>
+                  <MaterialCommunityIcons name="map-marker" size={20} color="#FFF" />
+                  <Text style={styles.destinationText}>{item.dropOffAddress}</Text>
                 </View>
                 <View style={styles.rydeDetailsRow}>
                   <View style={styles.rydeDetailItem}>
-                    <MaterialCommunityIcons
-                      name="map-marker-distance"
-                      size={20}
-                      color="#FFF"
-                    />
-                    <Text style={styles.rydeDetailText}>{item.distance}</Text>
+                    <MaterialCommunityIcons name="map-marker-distance" size={20} color="#FFF" />
+                    <Text style={styles.rydeDetailText}>{item.distance.toFixed(1)} Km</Text>
                   </View>
                   <View style={styles.rydeDetailItem}>
                     <AntDesign name="calendar" size={20} color="#FFF" />
-                    <Text style={styles.rydeDetailText}>{item.date}</Text>
+                    <Text style={styles.rydeDetailText}>{moment(item.createdAt).format("DD MMM, YYYY")}</Text>
                   </View>
                   <View style={styles.rydeDetailItem}>
                     <AntDesign name="clockcircleo" size={20} color="#FFF" />
-                    <Text style={styles.rydeDetailText}>{item.duration}</Text>
+                    <Text style={styles.rydeDetailText}>{/* if duration available */}</Text>
                   </View>
                 </View>
               </View>
@@ -162,113 +129,65 @@ const Activities = () => {
           </ScrollView>
         );
       case "Reviews":
+        if (loading) return <ActivityIndicator size="large" color="#FFD700" style={{ marginTop: 20 }} />;
         return (
           <ScrollView contentContainerStyle={styles.tabContent}>
             <View style={styles.reviewsSummary}>
-              <Text style={styles.averageRating}>
-                {reviewsData.averageRating}
-              </Text>
-              <Text style={styles.totalReviews}>
-                ({reviewsData.totalReviews} driver reviews)
-              </Text>
-              {[5, 4, 3, 2, 1].map((star) => (
+              <Text style={styles.averageRating}>{ratingStats.average}</Text>
+              <Text style={styles.totalReviews}>({ratingStats.total} reviews)</Text>
+              {[5, 4, 3, 2, 1].map(star => (
                 <View key={star} style={styles.ratingBarContainer}>
                   <Text style={styles.ratingBarLabel}>{star}</Text>
                   <View style={styles.progressBarBackground}>
-                    <View
-                      style={[
-                        styles.progressBarFill,
-                        { width: `${reviewsData.ratingsBreakdown[star]}%` },
-                      ]}
-                    />
+                    <View style={[styles.progressBarFill, { width: `${ratingStats.breakdown[star]}%` }]} />
                   </View>
-                  <Text style={styles.ratingPercentage}>
-                    {reviewsData.ratingsBreakdown[star]}%
-                  </Text>
+                  <Text style={styles.ratingPercentage}>{ratingStats.breakdown[star]}%</Text>
                 </View>
               ))}
             </View>
-
             <Text style={styles.feedbackTitle}>Feedback & reviews</Text>
             <View style={styles.feedbackFilter}>
-              <TouchableOpacity
-                style={[styles.filterButton, { backgroundColor: "#FBB73A" }]}
-              >
-                <Text style={[styles.filterButtonText, { color: "#000" }]}>
-                  Verified
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.filterButton}>
-                <Text style={styles.filterButtonText}>New</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.filterButton}>
-                <Text style={styles.filterButtonText}>Previous</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.filterButton}>
-                <Text style={styles.filterButtonText}>Latest</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.filterButton}>
-                <Text style={styles.filterButtonText}>Neutral</Text>
-              </TouchableOpacity>
+              {['Verified', 'New', 'Previous', 'Latest', 'Neutral'].map((label, i) => (
+                <TouchableOpacity key={i} style={[styles.filterButton, i === 0 && { backgroundColor: "#FBB73A" }]}>
+                  <Text style={[styles.filterButtonText, i === 0 && { color: "#000" }]}>{label}</Text>
+                </TouchableOpacity>
+              ))}
             </View>
-
-            {reviewsData.feedback.map((item) => (
-              <View key={item.id} style={styles.feedbackItem}>
+            {reviews.map(item => (
+              <View key={item._id} style={styles.feedbackItem}>
                 <Image source={userImg} style={styles.feedbackUserImage} />
                 <View style={styles.feedbackDetails}>
-                  <Text style={styles.feedbackUserName}>{item.userName}</Text>
-                  <Text style={styles.feedbackTripId}>
-                    Trip ID: {item.tripId} | {item.date}
-                  </Text>
-                  <Text style={styles.feedbackComment}>{item.comment}</Text>
+                  <Text style={styles.feedbackUserName}>{item.riderId?.name || "Anonymous"}</Text>
+                  <Text style={styles.feedbackTripId}>Trip ID: {item.bookingId.slice(-6)} | {moment(item.createdAt).format("DD/MM/YY")}</Text>
+                  <Text style={styles.feedbackComment}>{item.message?.trim()}</Text>
                 </View>
-                <MaterialCommunityIcons
-                  name="dots-horizontal"
-                  size={24}
-                  color="#FFF"
-                />
+                <MaterialCommunityIcons name="dots-horizontal" size={24} color="#FFF" />
               </View>
             ))}
           </ScrollView>
         );
       case "Milestones":
+        // same content as before—static data preserved
         return (
           <ScrollView contentContainerStyle={styles.tabContent}>
             <View style={styles.milestoneLevelCard}>
               <Text style={styles.milestoneLevelText}>Level 20</Text>
               <Text style={styles.milestoneLevelSubText}>Keep up the good</Text>
-              <View style={styles.milestoneProgressBarBackground}>
-                <View style={styles.milestoneProgressBarFill} />
-              </View>
+              <View style={styles.milestoneProgressBarBackground}><View style={styles.milestoneProgressBarFill} /></View>
               <Text style={styles.milestoneProgressText}>10/20 rides</Text>
             </View>
-
-            <Text style={styles.milestonesSectionTitle}>
-              Milestones and rewards
-            </Text>
-            {milestonesData.map((milestone) => (
-              <View key={milestone.id} style={styles.milestoneItem}>
+            <Text style={styles.milestonesSectionTitle}>Milestones and rewards</Text>
+            {milestonesData.map(m => (
+              <View key={m.id} style={styles.milestoneItem}>
                 <View style={styles.milestoneIconText}>
-                  {milestone.reached ? (
-                    <AntDesign
-                      name="checkcircle"
-                      size={24}
-                      style={{ marginRight: 15 }}
-                      color="#FBB73A"
-                    />
-                  ) : (
-                    <Image source={badgeImg} style={styles.milestoneBadge} />
-                  )}
+                  {m.reached ? <AntDesign name="checkcircle" size={24} color="#FBB73A" style={{ marginRight: 15 }} />
+                    : <Image source={badgeImg} style={styles.milestoneBadge} />}
                   <View style={styles.milestoneDetails}>
-                    <Text style={styles.milestoneTitle}>{milestone.title}</Text>
-                    <Text style={styles.milestoneDescription}>
-                      {milestone.description}
-                    </Text>
+                    <Text style={styles.milestoneTitle}>{m.title}</Text>
+                    <Text style={styles.milestoneDescription}>{m.description}</Text>
                   </View>
                 </View>
-                {!milestone.reached && (
-                  <MaterialCommunityIcons name="lock" size={24} color="#AAA" />
-                )}
+                {!m.reached && <MaterialCommunityIcons name="lock" size={24} color="#AAA" />}
               </View>
             ))}
           </ScrollView>
@@ -280,37 +199,24 @@ const Activities = () => {
 
   return (
     <View style={styles.container}>
+      {/* header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Activities</Text>
         <TouchableOpacity style={styles.allRydesButton}>
           <Text style={styles.allRydesText}>All rydes</Text>
-          <AntDesign
-            name="caretdown"
-            size={12}
-            color="#FBB73A"
-            style={{ marginLeft: 5 }}
-          />
+          <AntDesign name="caretdown" size={12} color="#FBB73A" style={{ marginLeft: 5 }} />
         </TouchableOpacity>
       </View>
 
+      {/* tab selector */}
       <View style={styles.tabContainer}>
-        {["Ryde history", "Reviews", "Milestones"].map((tab) => (
+        {["Ryde history", "Reviews", "Milestones"].map(tab => (
           <TouchableOpacity
             key={tab}
-            style={[
-              styles.tabButton,
-              activeTab === tab && styles.activeTabButton,
-            ]}
+            style={[styles.tabButton, activeTab === tab && styles.activeTabButton]}
             onPress={() => setActiveTab(tab)}
           >
-            <Text
-              style={[
-                styles.tabButtonText,
-                activeTab === tab && styles.activeTabButtonText,
-              ]}
-            >
-              {tab}
-            </Text>
+            <Text style={[styles.tabButtonText, activeTab === tab && styles.activeTabButtonText]}>{tab}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -321,6 +227,8 @@ const Activities = () => {
     </View>
   );
 };
+
+export default Activities;
 
 const styles = StyleSheet.create({
   container: {
@@ -618,4 +526,3 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Activities;

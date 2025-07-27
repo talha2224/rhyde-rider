@@ -1,23 +1,49 @@
 import { AntDesign } from '@expo/vector-icons';
-import { router } from 'expo-router';
-import { useState } from 'react';
-import { Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import driverProfile from '../../../assets/images/bookings/driver.png'; // Assuming this path is correct
+import axios from 'axios';
+import { router, useLocalSearchParams } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { Image, ScrollView, StyleSheet, Text, TextInput, ToastAndroid, TouchableOpacity, View } from 'react-native';
+import config from '../../../config';
 
 const Rate = () => {
-    const [rating, setRating] = useState(0); // State for star rating
-    const [feedback, setFeedback] = useState(''); // State for feedback text
+    const params = useLocalSearchParams();
+    const [rating, setRating] = useState(0);
+    const [feedback, setFeedback] = useState('');
+    const [bookingDetails, setBookingDetails] = useState(null);
 
-    const driverDetails = {
-        name: 'Wilson Ezekiel',
-        location: 'Illinois, United States',
+    const handleSubmitRating = async () => {
+        if (!rating) {
+            ToastAndroid.show("Please provide a rating", ToastAndroid.SHORT);
+            return;
+        }
+
+        try {
+            const res = await axios.post(`${config.baseUrl}/review`, {
+                bookingId:bookingDetails?._id,
+                driverId: bookingDetails?.driverId?._id,
+                stars:rating,
+                message:feedback,
+            });
+            console.log(res,'res')
+
+            ToastAndroid.show("Review submitted successfully", ToastAndroid.SHORT);
+            router.push({pathname:"/home/booking/tip",params:{bookingData:JSON.stringify(bookingDetails)}});
+        } catch (error) {
+            console.error("Submit review error:", error);
+            ToastAndroid.show("Failed to submit review", ToastAndroid.SHORT);
+        }
     };
 
-    const handleSubmitRating = () => {
-        console.log('Rating:', rating);
-        console.log('Feedback:', feedback);
-        router.push("/home/booking/tip"); // Or navigate to a confirmation screen
-    };
+    useEffect(() => {
+        if (params?.bookingData) {
+            const bookingData = JSON.parse(params?.bookingData);
+            setBookingDetails(bookingData)
+        }
+        else {
+            ToastAndroid.show("No booking rydes", ToastAndroid.SHORT);
+            router.back();
+        }
+    }, []);
 
     return (
         <View style={styles.container}>
@@ -37,9 +63,9 @@ const Rate = () => {
                     </Text>
 
                     <View style={styles.driverInfoContainer}>
-                        <Image source={driverProfile} style={styles.driverAvatar} />
-                        <Text style={styles.driverName}>{driverDetails.name}</Text>
-                        <Text style={styles.driverLocation}>{driverDetails.location}</Text>
+                        <Image source={{ uri: bookingDetails?.driverId?.profile_img }} style={styles.driverAvatar} />
+                        <Text style={styles.driverName}>{bookingDetails?.driverId?.name}</Text>
+                        <Text style={styles.driverLocation}>{bookingDetails?.dropOffAddress}</Text>
                     </View>
 
                     <View style={styles.starRatingContainer}>
@@ -157,8 +183,8 @@ const styles = StyleSheet.create({
         textAlignVertical: 'top',
         width: '100%',
         marginBottom: 30,
-        borderWidth:1,
-        borderColor:"#252222",
+        borderWidth: 1,
+        borderColor: "#252222",
     },
     submitButton: {
         backgroundColor: '#FFD700', // Gold color

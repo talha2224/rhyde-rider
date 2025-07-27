@@ -1,20 +1,37 @@
-import AsyncStorage from '@react-native-async-storage/async-storage'; // <-- Import AsyncStorage
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 import { router } from 'expo-router';
 import { useEffect } from 'react';
 import { Image, View } from 'react-native';
 import Logo from '../assets/images/logo.png';
+import config from '../config';
+
 
 const DefaultScreen = () => {
   useEffect(() => {
     const checkUser = async () => {
       const userId = await AsyncStorage.getItem('userId');
-      setTimeout(() => {
-        if (userId) {
-          router.replace('/home');
-        } else {
-          router.replace('/onboarding');
+      if (userId) {
+        try {
+          console.log(userId, 'userId')
+          console.log(`${config.baseUrl}/booking/ongoing?riderId=${userId}`)
+          let isBookingExits = await axios.get(`${config.baseUrl}/booking/ongoing?riderId=${userId}`)
+          if (isBookingExits.data?.data) {
+            router.push({ pathname: "/home/booking/activebooking", params: { bookingData: JSON.stringify(isBookingExits?.data?.data) }, });
+          }
+          else {
+            router.replace('/home');
+          }
+
         }
-      }, 2000);
+        catch (error) {
+          console.log(error, 'error')
+          router.replace('/home');
+        }
+      }
+      else {
+        router.replace('/onboarding');
+      }
     };
 
     checkUser();

@@ -1,7 +1,7 @@
 import { AntDesign } from '@expo/vector-icons';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import { router } from 'expo-router';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, ToastAndroid, TouchableOpacity, View } from 'react-native';
 
 const Mlm = () => {
     const earningsByLevel = [
@@ -38,7 +38,7 @@ const Mlm = () => {
                     <Text style={styles.totalCommissionLabel}>Total Commission</Text>
                     <View style={styles.totalCommissionDetails}>
                         <Text style={styles.totalCommissionAmount}>{totalCommission}</Text>
-                        <TouchableOpacity style={styles.claimButton}>
+                        <TouchableOpacity onPress={()=>{ToastAndroid.show("Claim successful",ToastAndroid.SHORT);router.back()}} style={styles.claimButton}>
                             <Text style={styles.claimButtonText}>Claim</Text>
                         </TouchableOpacity>
                     </View>

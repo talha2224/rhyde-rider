@@ -1,21 +1,97 @@
 import { AntDesign, MaterialCommunityIcons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useStripe } from '@stripe/stripe-react-native';
+import axios from 'axios';
 import { router } from 'expo-router';
-import { useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ScrollView, StyleSheet, Text, ToastAndroid, TouchableOpacity, View } from 'react-native';
+import config from '../../config';
 
 const Credit = () => {
-  const [amount, setAmount] = useState(''); // This state will hold the selected preset amount
+  const [amount, setAmount] = useState('');
+  const [wallet, setWallet] = useState(null);
+  const [transactions, setTransactions] = useState([]);
+  const stripe = useStripe();
+  const [loading, setLoading] = useState(false);
+  const [userId, setUserId] = useState(null);
+
+  useEffect(() => {
+    const init = async () => {
+      const uid = await AsyncStorage.getItem("userId");
+      setUserId(uid);
+      fetchWallet(uid);
+      fetchTransactions(uid);
+    };
+    init();
+  }, []);
+
+  const fetchWallet = async (uid) => {
+    try {
+      const res = await axios.get(`${config.baseUrl}/wallet/history/rider/${uid}`);
+      console.log(res.data?.data)
+      setWallet(res.data?.data[0]);
+    } catch (err) {
+      console.error('Error fetching wallet:', err);
+    }
+  };
+
+  const fetchTransactions = async (uid) => {
+    try {
+      const res = await axios.get(`${config.baseUrl}/transaction?role=rider&userId=${uid}`);
+      setTransactions(res.data || []);
+    } catch (err) {
+      console.error('Error fetching transactions:', err);
+    }
+  };
 
   const handlePresetAmount = (preset) => {
     setAmount(String(preset));
   };
 
-  const previousPurchasesData = [
-    { id: '1', amount: '$2,000', date: '3 June, 2025', time: '8:04 PM', extra: '+$6,000 Extra' },
-    { id: '2', amount: '$2,000', date: '3 June, 2025', time: '8:04 PM', extra: '+$6,000 Extra' },
-    { id: '3', amount: '$2,000', date: '3 June, 2025', time: '8:04 PM', extra: '+$6,000 Extra' },
-    { id: '4', amount: '$2,000', date: '3 June, 2025', time: '8:04 PM', extra: '+$6,000 Extra' },
-  ];
+  const handleTopUp = async () => {
+    if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
+      ToastAndroid.show("Select a valid amount", ToastAndroid.SHORT);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const cents = Math.floor(parseFloat(amount) * 100);
+      const res = await axios.post(`${config.baseUrl}/payment/create`, {
+        amount: cents,
+        id: userId
+      });
+
+      const clientSecret = res.data?.clientSecret;
+      const init = await stripe.initPaymentSheet({merchantDisplayName:"rider",paymentIntentClientSecret: clientSecret });
+      if (init.error) {
+        throw new Error(init.error.message);
+      }
+
+      const paymentResult = await stripe.presentPaymentSheet();
+      if (paymentResult.error) {
+        throw new Error(paymentResult.error.message);
+      }
+
+      // Success — Record transaction
+      await axios.post(`${config.baseUrl}/transaction`, {
+        riderId: userId,
+        amount: parseFloat(amount),
+        type: "topup for rider"
+      });
+
+      ToastAndroid.show("Top-up Successful!", ToastAndroid.SHORT);
+      fetchWallet(userId);
+      fetchTransactions(userId);
+      setAmount('');
+
+    } catch (err) {
+      console.error("Top-up error:", err);
+      ToastAndroid.show(err.message || "Payment failed", ToastAndroid.SHORT);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -28,16 +104,16 @@ const Credit = () => {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
-        {/* Your Balance Section */}
+        {/* Balance */}
         <View style={styles.balanceSection}>
           <View style={styles.balanceHeader}>
             <Text style={styles.balanceLabel}>Your Balance</Text>
             <AntDesign name="eyeo" size={18} color="#FFF" />
           </View>
-          <Text style={styles.currentBalanceAmount}>$2,000.13</Text>
+          <Text style={styles.currentBalanceAmount}>${wallet?.amount?.toFixed(2) || '0.00'}</Text>
         </View>
 
-        {/* Promotion Banner */}
+        {/* Promo */}
         <View style={styles.promoBanner}>
           <View style={styles.promoTextContainer}>
             <Text style={styles.promoTitle}>Get an Extra 50%</Text>
@@ -48,45 +124,35 @@ const Credit = () => {
           <MaterialCommunityIcons name="wallet-outline" size={40} color="#FFF" />
         </View>
 
-        {/* Amount Input Display (for selected preset) */}
+        {/* Selected Amount */}
         <View style={styles.amountInputDisplayContainer}>
           <Text style={styles.amountInputDisplayText}>${amount || '0.00'}</Text>
         </View>
 
-        {/* Preset Amount Buttons */}
+        {/* Presets */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.presetButtonsContainer}>
-          <TouchableOpacity style={styles.presetButton} onPress={() => handlePresetAmount(10)}>
-            <Text style={styles.presetButtonText}>$10</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.presetButton} onPress={() => handlePresetAmount(20)}>
-            <Text style={styles.presetButtonText}>$20</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.presetButton} onPress={() => handlePresetAmount(100)}>
-            <Text style={styles.presetButtonText}>$100</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.presetButton} onPress={() => handlePresetAmount(500)}>
-            <Text style={styles.presetButtonText}>$500</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.presetButton} onPress={() => handlePresetAmount(1000)}>
-            <Text style={styles.presetButtonText}>$1000</Text>
-          </TouchableOpacity>
+          {[10, 20, 100, 500, 1000].map(preset => (
+            <TouchableOpacity key={preset} style={styles.presetButton} onPress={() => handlePresetAmount(preset)}>
+              <Text style={styles.presetButtonText}>${preset}</Text>
+            </TouchableOpacity>
+          ))}
         </ScrollView>
 
-        {/* Purchase Credit Button */}
-        <TouchableOpacity style={styles.purchaseButton}>
-          <Text style={styles.purchaseButtonText}>Purchase credit</Text>
+        {/* Purchase Button */}
+        <TouchableOpacity style={styles.purchaseButton} onPress={handleTopUp} disabled={loading}>
+          <Text style={styles.purchaseButtonText}>{loading ? 'Processing...' : 'Purchase credit'}</Text>
         </TouchableOpacity>
 
-        {/* Previous Purchases Section */}
+        {/* Transaction History */}
         <View style={styles.previousPurchasesSection}>
-          <Text style={styles.previousPurchasesTitle}>Previous purchases</Text>
-          {previousPurchasesData.map((item) => (
-            <View key={item.id} style={styles.purchaseItem}>
+          <Text style={styles.previousPurchasesTitle}>Transaction History</Text>
+          {transactions.map((item, index) => (
+            <View key={index} style={styles.purchaseItem}>
               <View style={styles.purchaseDetails}>
-                <Text style={styles.purchaseAmount}>{item.amount}</Text>
-                <Text style={styles.purchaseDate}>{item.date} {item.time}</Text>
+                <Text style={styles.purchaseAmount}>${item.amount.toFixed(2)}</Text>
+                <Text style={styles.purchaseDate}>{new Date(item.createdAt).toLocaleString()}</Text>
               </View>
-              <Text style={styles.purchaseExtra}>{item.extra}</Text>
+              <Text style={styles.purchaseExtra}>{item?.message?.split("-")[0]}</Text>
             </View>
           ))}
         </View>
@@ -213,7 +279,7 @@ const styles = StyleSheet.create({
   purchaseItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems:"flex-start",
     marginBottom: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#333',

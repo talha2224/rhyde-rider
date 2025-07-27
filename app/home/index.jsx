@@ -1,4 +1,4 @@
-import { AntDesign, FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
+import { FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import * as Location from 'expo-location';
@@ -14,7 +14,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import carImg from '../../assets/images/home/car.png';
 import BottomNavbar from '../../components/BottomNavbar';
 import Map from '../../components/Map';
 import config from '../../config';
@@ -25,6 +24,8 @@ const Home = () => {
   const [address, setAddress] = useState(null);
   const [destination, setDestination] = useState({ pickupAddress: '', dropOfAddress: '', dropOfLongtitude: "", dropOfLatitude: "" });
   const [suggestions, setSuggestions] = useState([]);
+  const [availableDriver, setAvailableDriver] = useState([]);
+  const [rideHistory, setRideHistory] = useState([])
 
   const handlePlaceSelection = useCallback((data, details) => {
     if (details) {
@@ -71,31 +72,15 @@ const Home = () => {
     }
   };
 
-  const updateLocation = async (latitude,longitude) => {
+  const updateLocation = async (latitude, longitude) => {
     try {
       const userId = await AsyncStorage.getItem("userId");
       const role = "rider"
       if (!userId || !latitude || !longitude) return;
-      const payload = { latitude,longitude, ...(role === "driver" ? { driverId: userId } : { riderId: userId }) };
-      const res = await axios.post(`${config.baseUrl}/location/update`, payload);
-      if (res?.data?.status === 200) {
-        console.log("📍 Location updated:");
-      }
+      const payload = { latitude, longitude, ...(role === "driver" ? { driverId: userId } : { riderId: userId }) };
+      await axios.post(`${config.baseUrl}/location/update`, payload);
     } catch (error) {
       console.error("❌ Failed to update location:", error?.response?.data || error.message);
-    }
-  };
-
-  const fetchSavedLocation = async () => {
-    try {
-      const userId = await AsyncStorage.getItem("userId");
-      const role = "rider"
-      if (!userId || !role) return;
-      const res = await axios.get(`${config.baseUrl}/location/${role}/${userId}`);
-      if (res?.data?.status === 200) {
-      }
-    } catch (error) {
-      console.error("❌ Failed to fetch saved location:", error?.response?.data || error.message);
     }
   };
 
@@ -107,8 +92,14 @@ const Home = () => {
         if (!userId) return;
 
         const res = await axios.get(`${config.baseUrl}/rider/info/${userId}`);
-        if (res.status === 201 && res.data?.data) {
+        const driver = await axios.get(`${config.baseUrl}/driver/online/list`);
+        let response = await axios.get(`${config.baseUrl}/booking/history/all?riderId=${userId}`)
+        setRideHistory(response?.data?.data || []);
+        if (res.data?.data) {
           setUser(res.data.data);
+          setAvailableDriver(driver.data.data);
+          setRideHistory(response?.data?.data)
+
         }
       } catch (error) {
         console.log('Failed to fetch user:', error?.response?.data || error.message);
@@ -137,7 +128,7 @@ const Home = () => {
 
         const [addr] = await Location.reverseGeocodeAsync(loc.coords);
         setAddress(addr);
-        await updateLocation(loc.coords.latitude,loc.coords.longitude);
+        await updateLocation(loc.coords.latitude, loc.coords.longitude);
       } catch (error) {
         ToastAndroid.show(error.message, ToastAndroid.SHORT);
       }
@@ -163,25 +154,22 @@ const Home = () => {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Top rydes</Text>
-            <TouchableOpacity onPress={() => router.push('/home/rhydes')}>
-              <Text style={styles.seeMore}>See more</Text>
-            </TouchableOpacity>
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.cardScroll}>
-            {[1, 2, 3, 4].map((i) => (
+            {availableDriver.map((i) => (
               <View key={i} style={[styles.rydeCard, { backgroundColor: '#FBB73A' }]}>
-                <Image source={carImg} style={styles.rydeImage} />
+                <Image source={{ uri: i?.driver?.front_view_img }} style={styles.rydeImage} />
                 <View style={styles.rydeDetails}>
-                  <Text style={styles.rydeName}>Compact SUV</Text>
+                  <Text style={styles.rydeName}>{i?.driver?.make} {i?.driver?.model}</Text>
                   <Text style={styles.rydeDistance}>10 mins away</Text>
-                  <View style={styles.ratingContainer}>
+                  {/* <View style={styles.ratingContainer}>
                     {[...Array(4)].map((_, idx) => (
                       <AntDesign key={idx} name="star" size={14} color="#FFD700" />
                     ))}
                     <AntDesign name="staro" size={14} color="#FFD700" />
                     <Text style={styles.reviewCount}>(120 Review)</Text>
-                  </View>
-                  <Text style={styles.rydePrice}>$34.60</Text>
+                  </View> */}
+                  <Text style={styles.rydePrice}>${i?.driver?.perKmRate}Km</Text>
                 </View>
               </View>
             ))}
@@ -239,20 +227,20 @@ const Home = () => {
         <View style={[styles.section, { marginBottom: 80 }]}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>History</Text>
-            <TouchableOpacity onPress={() => router.push('/home/rideHistory')}>
+            {/* <TouchableOpacity onPress={() => router.push('/home/rideHistory')}>
               <Text style={styles.seeMore}>See more</Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
-          {[1, 2, 3].map((i) => (
-            <View key={i} style={styles.historyItem}>
+          {rideHistory.map((i) => (
+            <View key={i?._id} style={styles.historyItem}>
               <View style={styles.historyIconText}>
                 <FontAwesome5 name="store" size={20} color="#FFD700" />
                 <View style={styles.historyDetails}>
-                  <Text style={styles.historyTitle}>Fashion Store</Text>
-                  <Text style={styles.historyAddress}>45, Jos Avenue 34 Crescent</Text>
+                  <Text numberOfLines={1}  style={styles.historyTitle}>{i?.pickupAddress?.split(" ")[0] +" " + i?.pickupAddress?.split(" ")[1] +" " + i?.pickupAddress?.split(" ")[2] +" " + i?.pickupAddress?.split(" ")[3]}</Text>
+                  <Text style={styles.historyAddress}>{i?.dropOffAddress?.split(" ")[0] +" " + i?.dropOffAddress?.split(" ")[1] +" " + i?.dropOffAddress?.split(" ")[2] +" " + i?.dropOffAddress?.split(" ")[3]}</Text>
                 </View>
               </View>
-              <Text style={styles.historyPrice}>$40.6</Text>
+              <Text style={styles.historyPrice}>${i?.fare?.toFixed(2)}</Text>
             </View>
           ))}
         </View>
@@ -313,7 +301,7 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
   },
   rydeCard: {
-    borderRadius: 15,
+    borderRadius: 5,
     padding: 15,
     paddingHorizontal: 10,
     marginRight: 15,

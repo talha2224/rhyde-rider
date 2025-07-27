@@ -1,10 +1,30 @@
 import { AntDesign, MaterialCommunityIcons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 import { router } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import BottomNavbar from '../../components/BottomNavbar'; // Assuming this path is correct
-import { transactionsData } from '../../constants/constant';
+import BottomNavbar from '../../components/BottomNavbar';
+import config from "../../config";
 
 const Wallet = () => {
+
+  const [walletBalance, setWalletBalance] = useState(null);
+  const [transactions, setTransactions] = useState([]);
+
+  useEffect(() => {
+    (async () => {
+      let userId = await AsyncStorage.getItem("userId");
+      let wallet = await axios.get(
+        `${config.baseUrl}/wallet/history/rider/${userId}`
+      );
+      let transaction = await axios.get(
+        `${config.baseUrl}/transaction?role=rider&userId=${userId}`
+      );
+      setTransactions(transaction.data);
+      setWalletBalance(wallet.data.data[0]);
+    })();
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -21,7 +41,7 @@ const Wallet = () => {
             <AntDesign name="eyeo" size={18} color="#FFF" />
           </View>
           <View style={styles.balanceAmountContainer}>
-            <Text style={styles.balanceAmount}>$40,000.78</Text>
+            <Text style={styles.balanceAmount}>${walletBalance?.amount?.toFixed(2)}</Text>
             <TouchableOpacity onPress={() => { router.push("/home/deposit") }} style={styles.depositButton}>
               <MaterialCommunityIcons name="currency-usd" size={20} color="#1C1A1B" />
               <Text style={styles.depositButtonText}>Deposit</Text>
@@ -53,20 +73,37 @@ const Wallet = () => {
         <View style={styles.transactionsSection}>
           <View style={styles.transactionsHeader}>
             <Text style={styles.transactionsTitle}>Recent transactions</Text>
-            <TouchableOpacity onPress={()=>{router.push("/home/transactions")}}>
+            {/* <TouchableOpacity onPress={() => { router.push("/home/transactions") }}>
               <Text style={styles.seeAllText}>See all</Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
-          {transactionsData.map((item) => (
-            <View key={item.id} style={styles.transactionItem}>
-              <View style={[styles.transactionIconContainer, { backgroundColor: item.iconColor }]}>
-                <MaterialCommunityIcons name={item.icon} size={20} color="#FFF" />
+          {transactions.slice(0, 5).map((item) => (
+            <View key={item._id} style={styles.transactionItem}>
+              <View
+                style={[
+                  styles.transactionIconContainer,
+                  { backgroundColor: "#FFD700" },
+                ]}
+              >
+                <MaterialCommunityIcons
+                  name="currency-usd"
+                  size={20}
+                  color="#FFF"
+                />
               </View>
               <View style={styles.transactionDetails}>
-                <Text style={styles.transactionTitle}>{item.title}</Text>
-                <Text style={styles.transactionDate}>{item.date}, {item.time}</Text>
+                <Text style={styles.transactionTitle}>{item.message}</Text>
+                <Text style={styles.transactionDate}>
+                  {new Date(item.createdAt).toLocaleDateString()} •{" "}
+                  {new Date(item.createdAt).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </Text>
               </View>
-              <Text style={styles.transactionAmount}>{item.amount}</Text>
+              <Text style={styles.transactionAmount}>
+                ${item.amount.toFixed(2)}
+              </Text>
             </View>
           ))}
         </View>

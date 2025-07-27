@@ -1,10 +1,13 @@
-import { AntDesign, FontAwesome, MaterialCommunityIcons } from '@expo/vector-icons';
+import { AntDesign, MaterialCommunityIcons } from '@expo/vector-icons';
 import Entypo from '@expo/vector-icons/Entypo';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Dimensions, Image, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Dimensions, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import Map from '../../../components/Map';
-import { paymentMethods, ryderOptions } from '../../../constants/constant';
+import config from '../../../config';
+import { paymentMethods } from '../../../constants/constant';
 
 const { height } = Dimensions.get('window');
 
@@ -12,57 +15,11 @@ const SelectRhyde = () => {
   const params = useLocalSearchParams();
   const [location, setLocation] = useState(null);
   const [rideLocation, setRideLocation] = useState(null);
+  const [availableDriver, setAvailableDriver] = useState([]);
   const [rideTime] = useState('Now');
   const [showPaymentMethodModal, setShowPaymentMethodModal] = useState(false);
-  const [showPromotionsModal, setShowPromotionsModal] = useState(false);
-  const [showRyderModal, setShowRyderModal] = useState(false);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
-  const [selectedPromotion, setSelectedPromotion] = useState(null);
-  const [selectedRyder, setSelectedRyder] = useState(null);
 
-
-  const generateRideScheduleOptions = () => {
-    const options = [];
-    const now = new Date();
-    // Rydes can only be booked 48 hrs in advance.
-    // So, start from 48 hours from now.
-    now.setHours(now.getHours() + 48);
-
-    for (let i = 0; i < 7; i++) { // Generate options for the next 7 days
-      const date = new Date(now);
-      date.setDate(now.getDate() + i);
-
-      const dayNames = ['Sun', 'Mon', 'Tues', 'Wed', 'Thurs', 'Fri', 'Sat'];
-      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-      const day = dayNames[date.getDay()];
-      const month = monthNames[date.getMonth()];
-      const dayOfMonth = date.getDate();
-
-      // Example times (can be adjusted for more granularity)
-      const times = [
-        { hour: 12, minute: 0, period: 'PM' },
-        { hour: 12, minute: 1, period: 'PM' },
-        { hour: 12, minute: 2, period: 'PM' },
-        { hour: 12, minute: 58, period: 'PM' }, // Example from image
-        { hour: 12, minute: 59, period: 'AM' }, // Example from image
-      ];
-
-      times.forEach((t, index) => {
-        options.push({
-          id: `${date.toDateString()}-${t.hour}-${t.minute}-${t.period}`,
-          date: `${day} ${dayOfMonth} ${month}`,
-          time: `${t.hour} ${t.minute < 10 ? '0' + t.minute : t.minute} ${t.period}`,
-          dateTime: new Date(date.getFullYear(), date.getMonth(), date.getDate(), (t.period === 'PM' && t.hour !== 12) ? t.hour + 12 : t.hour, t.minute)
-        });
-      });
-    }
-    // Sort options by dateTime to ensure chronological order
-    options.sort((a, b) => a.dateTime - b.dateTime);
-    return options;
-  };
-
-  const rideScheduleOptions = generateRideScheduleOptions();
 
   const CustomModal = ({ visible, onClose, children, title }) => (
     <Modal animationType="slide" transparent={true} visible={visible} onRequestClose={onClose}>
@@ -88,7 +45,6 @@ const SelectRhyde = () => {
       try {
         const userLocation = JSON.parse(params.currentLocation);
         const receivedDestination = JSON.parse(params.destination);
-        console.log(receivedDestination, 'receivedDestination')
         setRideLocation(receivedDestination);
         setLocation(userLocation);
       } catch (error) {
@@ -96,6 +52,26 @@ const SelectRhyde = () => {
       }
     }
   }, []);
+
+  useEffect(() => {
+    const fetchDrivers = async () => {
+      try {
+        const userId = await AsyncStorage.getItem('userId');
+        if (!userId) return;
+
+        const res = await axios.get(`${config.baseUrl}/driver/online/list`);
+        if (res?.data?.data) {
+          setAvailableDriver(res.data.data);
+        }
+      } catch (error) {
+        console.log('Failed to fetch user:', error?.response?.data || error.message);
+      }
+    };
+
+    fetchDrivers();
+  }, []);
+
+  console.log(availableDriver,'availableDriver')
 
   return (
     <View style={styles.container}>
@@ -138,24 +114,11 @@ const SelectRhyde = () => {
             </Text>
             <AntDesign name="right" size={16} color="#AAA" />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.optionItem} onPress={() => setShowPromotionsModal(true)}>
-            <MaterialCommunityIcons name="brightness-percent" size={24} color="#FFD700" />
-            <Text style={styles.optionText}>
-              Promotions {selectedPromotion ? `(${selectedPromotion.date.split(' ')[0]} ${selectedPromotion.time})` : ''}
-            </Text>
-            <AntDesign name="right" size={16} color="#AAA" />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.optionItem} onPress={() => setShowRyderModal(true)}>
-            <FontAwesome name="user-o" size={24} color="#FFD700" />
-            <Text style={styles.optionText}>
-              Select ryder {selectedRyder ? `(${selectedRyder.name})` : ''}
-            </Text>
-            <AntDesign name="right" size={16} color="#AAA" />
-          </TouchableOpacity>
         </View>
 
         {/* Action Buttons */}
-        <TouchableOpacity onPress={() => { router.push("/home/booking/rhydes") }} style={styles.findRydeButton}>
+        <TouchableOpacity onPress={() => { router.push({ pathname: '/home/booking/rhydes', params: {paymentMethod:selectedPaymentMethod?.name,userLocation:JSON.stringify({currentLocation:location,dropOffLocation:rideLocation}),availableDriver: JSON.stringify(availableDriver)},});}} 
+        style={styles.findRydeButton}>
           <Text style={styles.findRydeButtonText}>Find ryde</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => { router.push("/home") }} style={styles.cancelButton}>
@@ -199,61 +162,6 @@ const SelectRhyde = () => {
         ))}
       </CustomModal>
 
-      {/* Promotions/Schedule Ryde Modal */}
-      <CustomModal visible={showPromotionsModal} onClose={() => setShowPromotionsModal(false)} title="Schedule ryde">
-        <Text style={styles.scheduleRydeNote}>Rydes can only be booked 48 hrs in advance</Text>
-        <View style={styles.scheduleOptionsContainer}>
-          {rideScheduleOptions.map((option) => (
-            <TouchableOpacity
-              key={option.id}
-              style={[
-                styles.scheduleOptionItem,
-                selectedPromotion && selectedPromotion.id === option.id && styles.selectedScheduleOption,
-              ]}
-              onPress={() => setSelectedPromotion(option)}
-            >
-              <Text style={styles.scheduleDateText}>{option.date}</Text>
-              <View style={styles.scheduleTimeContainer}>
-                <Text style={styles.scheduleTimeText}>{option.time.split(' ')[0]}</Text>
-                <Text style={styles.scheduleTimePeriod}>{option.time.split(' ')[1]}</Text>
-              </View>
-              {selectedPromotion && selectedPromotion.id === option.id && (
-                <AntDesign name="checkcircle" size={20} color="#FFD700" style={styles.scheduleCheckIcon} />
-              )}
-            </TouchableOpacity>
-          ))}
-        </View>
-        <TouchableOpacity
-          style={styles.modalConfirmButton}
-          onPress={() => setShowPromotionsModal(false)}
-        >
-          <Text style={styles.modalConfirmButtonText}>Confirm</Text>
-        </TouchableOpacity>
-      </CustomModal>
-
-
-      {/* Choose Ryder Modal */}
-      <CustomModal visible={showRyderModal} onClose={() => setShowRyderModal(false)} title="Choose ryder">
-        {ryderOptions.map((ryder) => (
-          <TouchableOpacity
-            key={ryder.id}
-            style={styles.modalRyderItem}
-            onPress={() => {
-              setSelectedRyder(ryder);
-              setShowRyderModal(false);
-            }}
-          >
-            <Image source={{ uri: ryder.avatar }} style={styles.ryderAvatar} />
-            <Text style={styles.modalRyderName}>{ryder.name}</Text>
-            {selectedRyder && selectedRyder.id === ryder.id && (
-              <AntDesign name="checkcircle" size={20} color="#FFD700" />
-            )}
-          </TouchableOpacity>
-        ))}
-        <TouchableOpacity style={styles.addRyderButton}>
-          <Text style={styles.addRyderButtonText}>Add ryder</Text>
-        </TouchableOpacity>
-      </CustomModal>
     </View>
   );
 };

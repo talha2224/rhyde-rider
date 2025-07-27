@@ -1,12 +1,17 @@
 import { AntDesign } from '@expo/vector-icons';
-import { router } from 'expo-router';
-import { useState } from 'react';
+import { initPaymentSheet, presentPaymentSheet } from '@stripe/stripe-react-native';
+import axios from 'axios';
+import { router, useLocalSearchParams } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TextInput, ToastAndroid, TouchableOpacity, View } from 'react-native';
+import config from '../../../config';
 
 const Tip = () => {
+    const params = useLocalSearchParams();
+
     const [tipAmount, setTipAmount] = useState(''); // State for custom tip amount
     const [selectedPresetTip, setSelectedPresetTip] = useState(null); // State for selected preset tip
-
+    const [bookingDetails, setBookingDetails] = useState(null);
     const presetTips = ['$2', '$3', '$4', '$5', '$6', '$7', '$10'];
 
     const handlePresetTipSelect = (amount) => {
@@ -24,12 +29,66 @@ const Tip = () => {
         setSelectedPresetTip(null); // Deselect any preset when custom typing
     };
 
-    const handlePayTip = () => {
-        const finalTip = selectedPresetTip || (tipAmount ? `$${parseFloat(tipAmount).toFixed(2)}` : '$0.00');
-        console.log('Paying tip:', finalTip);
-        ToastAndroid.show("Tip Paid",ToastAndroid.SHORT)
-        router.push("/home")
+    const handlePayTip = async () => {
+        if (!tipAmount || isNaN(tipAmount) || parseFloat(tipAmount) <= 0) {
+            ToastAndroid.show("Enter a valid tip amount", ToastAndroid.SHORT);
+            return;
+        }
+
+        try {
+            const amountInCents = Math.floor(parseFloat(tipAmount) * 100);
+            const riderId = bookingDetails?.riderId?._id;
+            const driverId = bookingDetails?.driverId?._id;
+            const bookingId = bookingDetails?._id;
+
+            // 1. Create Stripe payment intent
+            const res = await axios.post(`${config.baseUrl}/payment/create`, {
+                amount: amountInCents,
+                id: riderId
+            });
+
+            const secret = res.data?.clientSecret;
+
+            // 2. Initialize and present Stripe payment sheet
+            const initResp = await initPaymentSheet({ merchantDisplayName: bookingDetails?.riderId?.name, paymentIntentClientSecret: secret });
+
+            if (initResp.error) {
+                ToastAndroid.show(initResp.error.message, ToastAndroid.SHORT);
+                return;
+            }
+
+            const paymentResp = await presentPaymentSheet();
+            if (paymentResp.error) {
+                ToastAndroid.show(paymentResp.error.message, ToastAndroid.SHORT);
+                return;
+            }
+
+            // 3. Update tip in booking and record transaction
+            const updateResp = await axios.put(`${config.baseUrl}/booking/tip/${bookingId}`, {
+                tip: parseFloat(tipAmount),
+            });
+
+            if (updateResp?.data?.data) {
+                ToastAndroid.show("Tip Paid Successfully", ToastAndroid.SHORT);
+                router.push("/home");
+            }
+
+        } catch (err) {
+            console.log("Stripe error:", err);
+            ToastAndroid.show("Something went wrong", ToastAndroid.SHORT);
+        }
     };
+
+    useEffect(() => {
+        if (params?.bookingData) {
+            const bookingData = JSON.parse(params?.bookingData);
+            setBookingDetails(bookingData)
+        }
+        else {
+            ToastAndroid.show("No booking rydes", ToastAndroid.SHORT);
+            router.back();
+        }
+    }, []);
 
     return (
         <View style={styles.container}>
@@ -196,7 +255,7 @@ const styles = StyleSheet.create({
         width: '90%',
         marginHorizontal: 20,
         alignItems: 'center',
-        marginBottom:60
+        marginBottom: 60
     },
     cancelButtonText: {
         color: '#AAA',

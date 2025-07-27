@@ -4,8 +4,8 @@ import axios from 'axios';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import cover_photo from "../../../assets/images/cover_photo.png"; // Assuming this path is correct
-import BottomNavbar from "../../../components/BottomNavbar"; // Assuming this path is correct
+import cover_photo from "../../../assets/images/cover_photo.png";
+import BottomNavbar from "../../../components/BottomNavbar";
 import config from '../../../config';
 
 const Profile = () => {
@@ -18,7 +18,7 @@ const Profile = () => {
         const userId = await AsyncStorage.getItem('userId');
         if (!userId) return;
         const res = await axios.get(`${config.baseUrl}/rider/info/${userId}`);
-        if (res.status === 201 && res.data?.data) {
+        if (res.data?.data) {
           setUser(res.data.data);
         }
       } catch (error) {
@@ -28,6 +28,12 @@ const Profile = () => {
 
     fetchUser();
   }, []);
+
+  const handleLogout = async () =>{
+    await AsyncStorage.removeItem("userId")
+    router.push('/signin')
+  }
+
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
@@ -116,7 +122,7 @@ const Profile = () => {
             <AntDesign name="right" size={16} color="#AAA" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/')}>
+          <TouchableOpacity style={styles.menuItem} onPress={handleLogout}>
             <MaterialCommunityIcons name="logout" size={24} color="#FF6347" />
             <View style={styles.menuItemTextContainer}>
               <Text style={styles.menuItemTitle}>Logout</Text>

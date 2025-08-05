@@ -2,34 +2,75 @@ import { AntDesign } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { Image, LayoutAnimation, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import supportImg from "../../../assets/images/support.png"; // Assuming this path is correct
+import supportImg from "../../../assets/images/support.png";
 
 const Support = () => {
-  const [expandedFAQ, setExpandedFAQ] = useState(null); // State to manage expanded FAQ item
+  const [expandedFAQ, setExpandedFAQ] = useState(null);
 
   const faqs = [
     {
       id: '1',
-      question: 'How do I book a ryde?',
-      answer: "It's important to address common questions and concerns that users may have about the app. Here are some necessary questions to include",
+      question: 'What is Your Ryde?',
+      answer: 'Your Ryde is a rideshare platform designed to offer safer Rydes, better driver benefits, lower commission rates, and innovative rewards for riders and drivers.',
     },
     {
       id: '2',
-      question: 'Can I schedule a ryde in advance?',
-      answer: "Yes, you can schedule a ryde up to 48 hours in advance using the 'Schedule ryde' option.",
+      question: 'How is Your Ryde different from Uber or Lyft?',
+      answer: 'We offer capped surge pricing (max 2%), a flat 20% commission, driver bonuses, wear & tear rewards, a loyalty points program, and a unique multi-level referral system.',
     },
     {
       id: '3',
-      question: 'What if my driver cancels the ryde?',
-      answer: "If your driver cancels, the app will automatically try to find you another driver. If no driver is found, you will not be charged.",
+      question: 'Where is Your Ryde currently available?',
+      answer: 'Your Ryde launches first in Boston, Massachusetts with plans to expand to other cities and international markets.',
     },
     {
       id: '4',
-      question: 'How do I report an issue with my ryde?',
-      answer: "You can report an issue directly from your past rides history or through the 'Report a problem' section in your profile settings.",
+      question: 'Does Your Ryde allow cash payments?',
+      answer: 'Not at this time. We accept credit/debit cards, PayPal, and digital wallets for secure transactions.',
     },
-    // You can add more FAQs here
+    {
+      id: '5',
+      question: 'How do I book a Ryde?',
+      answer: 'Open the Your Ryde app or website, enter your pickup and drop-off location, choose your Ryde type, confirm your driver, and start your trip.',
+    },
+    {
+      id: '6',
+      question: 'What Ryde options are available?',
+      answer: 'You can choose from Compact SUVs, Full-Size SUVs, Sports Cars, and Luxury Cars.',
+    },
+    {
+      id: '7',
+      question: 'How does the 4-digit PIN safety feature work?',
+      answer: 'Upon driver arrival, they provide you with a unique PIN. You enter it in your app—if correct, a green light appears signaling it’s safe to enter. If incorrect, a red light warns you not to get in.',
+    },
+    {
+      id: '8',
+      question: 'What is the emergency safety button?',
+      answer: 'If you feel unsafe, tap the emergency button. It alerts your five pre-selected emergency contacts and sends your location to 911.',
+    },
+    {
+      id: '9',
+      question: 'How does the Loyalty Points Program work for riders?',
+      answer: 'You earn 15 points per Ryde. Once you reach 250 points, you can cash out for $3 or apply it toward your next Ryde.',
+    },
+    {
+      id: '10',
+      question: 'What are Ryde Credits?',
+      answer: 'Ryde Credits are prepaid Ryde funds you can buy at a discount—for example, spend $20 to get $25 worth of credits.',
+    },
+    {
+      id: '11',
+      question: 'How do I contact Your Ryde for support?',
+      answer: 'You can reach us via the in-app support chat, email at support@yourryde.com, or through the Contact Us page on our website.',
+    },
+    {
+      id: '12',
+      question: 'What is Your Ryde’s cancellation policy?',
+      answer: 'Riders can cancel without fees within the grace period. Subscribers get extra free cancellations based on their subscription.',
+    },
+
   ];
+
 
   const toggleFAQ = (id) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);

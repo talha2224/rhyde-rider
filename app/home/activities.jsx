@@ -174,7 +174,7 @@ const Activities = () => {
               <Text style={styles.milestoneLevelText}>Level 20</Text>
               <Text style={styles.milestoneLevelSubText}>Keep up the good</Text>
               <View style={styles.milestoneProgressBarBackground}><View style={styles.milestoneProgressBarFill} /></View>
-              <Text style={styles.milestoneProgressText}>10/20 rides</Text>
+              <Text style={styles.milestoneProgressText}>10/20 rydes</Text>
             </View>
             <Text style={styles.milestonesSectionTitle}>Milestones and rewards</Text>
             {milestonesData.map(m => (

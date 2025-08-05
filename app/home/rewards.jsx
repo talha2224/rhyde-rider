@@ -2,8 +2,23 @@ import { AntDesign, Entypo, MaterialCommunityIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import BottomNavbar from '../../components/BottomNavbar'; // Assuming this path is correct
+
+const generateReferralCode = () => {
+  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const numbers = '0123456789';
+
+  let code = '';
+  for (let i = 0; i < 4; i++) {
+    code += letters.charAt(Math.floor(Math.random() * letters.length));
+  }
+  for (let i = 0; i < 2; i++) {
+    code += numbers.charAt(Math.floor(Math.random() * numbers.length));
+  }
+  return code;
+};
+
 const Rewards = () => {
-  const referralCode = "SHVJFIIUGFDFDIGOFQ307462";
+  const referralCode = generateReferralCode();
 
   const milestonesData = [
     {
@@ -16,7 +31,7 @@ const Rewards = () => {
       id: '2',
       icon: 'cash-usd-outline',
       title: 'Up to $10 free ryde',
-      description: 'Complete 10 rides.',
+      description: 'Complete 10 rydes.',
     },
     {
       id: '3',

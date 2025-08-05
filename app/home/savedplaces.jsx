@@ -133,6 +133,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#1C1A1B', // Match container background
     borderTopWidth: 1,
     borderTopColor: '#333', // Subtle separator
+    marginBottom:70
   },
   addPlaceButton: {
     backgroundColor: '#FFD700', // Gold color

@@ -5,13 +5,78 @@ import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { useEffect } from "react";
+import { JSX, useEffect } from "react";
 import "react-native-reanimated";
-import Toast from 'react-native-toast-message';
+import Toast, { BaseToast, BaseToastProps, ErrorToast } from 'react-native-toast-message';
 import { screens } from '../constants/constant';
 import { SocketProvider } from '../contexts/SocketContext';
 
+
 SplashScreen.preventAutoHideAsync();
+
+const toastConfig = {
+  success: (props: JSX.IntrinsicAttributes & BaseToastProps) => (
+    <BaseToast
+      {...props}
+      style={{
+        borderLeftColor: '#FFD700',
+        backgroundColor: '#FFD700',
+        borderRadius: 10,
+      }}
+      contentContainerStyle={{ paddingHorizontal: 15 }}
+      text1Style={{
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#1C1A1B',
+      }}
+      text2Style={{
+        fontSize: 14,
+        color: '#1C1A1B',
+      }}
+    />
+  ),
+  info: (props: JSX.IntrinsicAttributes & BaseToastProps) => (
+    <BaseToast
+      {...props}
+      style={{
+        borderLeftColor: '#FFD700',
+        backgroundColor: '#FFD700',
+        borderRadius: 10,
+      }}
+      contentContainerStyle={{ paddingHorizontal: 15 }}
+      text1Style={{
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#1C1A1B',
+      }}
+      text2Style={{
+        fontSize: 14,
+        color: '#1C1A1B',
+      }}
+    />
+  ),
+  error: (props: JSX.IntrinsicAttributes & BaseToastProps) => (
+    <ErrorToast
+      {...props}
+      style={{
+        borderLeftColor: '#FFD700',
+        backgroundColor: '#FFD700',
+        borderRadius: 10,
+      }}
+      contentContainerStyle={{ paddingHorizontal: 15 }}
+      text1Style={{
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#1C1A1B',
+      }}
+      text2Style={{
+        fontSize: 14,
+        color: '#1C1A1B',
+      }}
+    />
+  ),
+};
+
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -32,7 +97,7 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={DarkTheme}>
       <SocketProvider>
-        <StripeProvider publishableKey='pk_test_51OjJpTASyMRcymO6x2PBK1nrHChycNMNXj7HHvTRffOp5xufCj3WRSCLoep1tGp5Ilx3IWj7ck5yqrwEH8VSRKn80055Kvyelu'>
+        <StripeProvider publishableKey='pk_live_51Rr17JQrAWYzdbHauVttOVJS4uyM2Mh4TdVHS10DeI2VPkclffHFaGUNhUJLLXV9tQmR6TccgxWfVwDvgqcjOqoY00rnjxvhUB'>
           <Stack screenOptions={{ headerShown: false, animation: "slide_from_right", animationTypeForReplace: "push", contentStyle: { backgroundColor: "rgb(1, 1, 1)" }, }}>
             {screens.map((name) => (
               <Stack.Screen key={name} name={name} />
@@ -40,7 +105,7 @@ export default function RootLayout() {
           </Stack>
         </StripeProvider>
       </SocketProvider>
-      <Toast />
+      <Toast config={toastConfig}/>
       <StatusBar style="auto" />
     </ThemeProvider>
 

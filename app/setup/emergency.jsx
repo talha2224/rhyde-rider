@@ -162,7 +162,6 @@ const styles = StyleSheet.create({
         borderRadius: 50,
     },
     contentArea: {
-        flex: 1,
         marginTop: 40
     },
     title: {
@@ -198,7 +197,7 @@ const styles = StyleSheet.create({
         borderRadius: 15,
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 30,
+        marginTop: 30,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,

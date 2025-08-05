@@ -57,7 +57,7 @@ const Rate = () => {
                 <View style={styles.content}>
                     <Text style={styles.mainTitle}>Rate your driver</Text>
                     <Text style={styles.description}>
-                        Share your experience to help us maintain high- {'\n'}quality rides and reward great drivers.
+                        Share your experience to help us maintain high- {'\n'}quality rydes and reward great drivers.
                     </Text>
 
                     <View style={styles.driverInfoContainer}>

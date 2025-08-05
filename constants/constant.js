@@ -139,8 +139,9 @@ export const transactionsData = [
 
 export const paymentMethods = [
   { id: "1", name: "Credit Debit Card" },
-  { id: "2", name: "Cash" },
+  { id: "2", name: "Paypal" },
   { id: "3", name: "Ryde Credits" },
+  { id: "4", name: "Ryde Credits" },
 ];
 
 export const ryderOptions = [

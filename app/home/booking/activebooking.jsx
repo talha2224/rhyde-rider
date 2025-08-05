@@ -4,10 +4,10 @@ import { useEffect, useState } from 'react';
 import { Dimensions, Image, Linking, Modal, ScrollView, StyleSheet, Text, TextInput, ToastAndroid, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker, Polyline } from 'react-native-maps';
 import Toast from 'react-native-toast-message';
+import carImg from '../../../assets/images/car.png';
 import { BOOKING_STATES, driverDetails, priceConfirmationDetails, rideDetails } from '../../../constants/constant';
 import { useSocket } from '../../../contexts/SocketContext';
 import { darkMapStyle } from '../../../style/dark.map.style';
-
 const { height } = Dimensions.get('window');
 
 const ActiveBooking = () => {
@@ -45,7 +45,7 @@ const ActiveBooking = () => {
             {/* <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
                 <AntDesign name="arrowleft" size={24} color="#FFF" />
             </TouchableOpacity> */}
-            <Text style={styles.headerTitle}>Ride Inprogress</Text>
+            <Text style={styles.headerTitle}>Ryde Inprogress</Text>
             <View style={styles.headerIcons}>
                 {showSave && (
                     <TouchableOpacity style={styles.headerIcon}>
@@ -123,12 +123,12 @@ const ActiveBooking = () => {
                     <Text style={styles.driverName}>{bookingDetails?.driverId?.name}</Text>
                     <View style={styles.driverRating}>
                         <AntDesign name="star" size={14} color="#FFD700" />
-                        <Text style={styles.driverRatingText}>{driverDetails.rating} ({driverDetails.rides} rides)</Text>
+                        <Text style={styles.driverRatingText}>{driverDetails.rating} ({driverDetails.rides} rydes)</Text>
                     </View>
                 </View>
-                <TouchableOpacity onPress={() => { router.push("/home/chat") }} style={styles.contactButton}>
+                {/* <TouchableOpacity onPress={() => { router.push("/home/chat") }} style={styles.contactButton}>
                     <Ionicons name="chatbubble-outline" size={24} color="#FFD700" />
-                </TouchableOpacity>
+                </TouchableOpacity> */}
                 <TouchableOpacity onPress={handleCallPress} style={styles.contactButton}>
                     <Ionicons name="call-outline" size={24} color="#FFD700" />
                 </TouchableOpacity>
@@ -306,7 +306,7 @@ const ActiveBooking = () => {
                     <MaterialCommunityIcons name="wallet-outline" size={60} color="#FFD700" style={styles.centerModalIcon} />
                     <Text style={styles.centerModalTitle}>Ryde Completed</Text>
                     <Text style={styles.centerModalDescription}>
-                        We hope you had a smooth journey. Let us {'\n'}know how your driver did!
+                        We hope you had a smooth ryde. Let us {'\n'}know how your driver did!
                     </Text>
                     <TouchableOpacity style={styles.centerModalButton} onPress={() => { setShowRydeCompletedModal(false); router.push({pathname:"/home/booking/rate",params:{bookingData:JSON.stringify(bookingDetails)}}) }}>
                         <Text style={styles.centerModalButtonText}>Rate driver</Text>
@@ -340,7 +340,7 @@ const ActiveBooking = () => {
         socket.on("rideCompleted", (booking) => {
             Toast.show({
                 type: "success",
-                text1: "Ride completed",
+                text1: "Ryde completed",
                 text2: "Thanks for chosing rhyde",
             });
             setTimeout(() => {
@@ -390,7 +390,7 @@ const ActiveBooking = () => {
 
                         {/* 🚘 Driver Location */}
                         <Marker coordinate={driverLocation}>
-                            <MaterialCommunityIcons name="car" size={26} color="gold" />
+                            <Image style={{width:58,height:58}} source={carImg}/>
                         </Marker>
 
                         {/* 🎯 Drop-off Location */}

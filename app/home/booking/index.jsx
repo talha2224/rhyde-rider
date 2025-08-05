@@ -108,7 +108,7 @@ const SelectRhyde = () => {
           <TouchableOpacity style={styles.optionItem} onPress={() => setShowPaymentMethodModal(true)}>
             <MaterialCommunityIcons name="credit-card-outline" size={24} color="#FFD700" />
             <Text style={styles.optionText}>
-              Payment method {selectedPaymentMethod ? `(${selectedPaymentMethod.name})` : ''}
+              Payment method {selectedPaymentMethod ? `(${selectedPaymentMethod?.id==4 ? "Gift Cards ":selectedPaymentMethod?.id==2 ?"Paypal":selectedPaymentMethod.name})` : ''}
             </Text>
             <AntDesign name="right" size={16} color="#AAA" />
           </TouchableOpacity>
@@ -117,7 +117,7 @@ const SelectRhyde = () => {
         {/* Action Buttons */}
         <TouchableOpacity onPress={() => { router.push({ pathname: '/home/booking/rhydes', params: {paymentMethod:selectedPaymentMethod?.name,userLocation:JSON.stringify({currentLocation:location,dropOffLocation:rideLocation}),availableDriver: JSON.stringify(availableDriver)},});}} 
         style={styles.findRydeButton}>
-          <Text style={styles.findRydeButtonText}>Find ryde</Text>
+          <Text style={styles.findRydeButtonText}>Find Your Ryde</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => { router.push("/home") }} style={styles.cancelButton}>
           <Text style={styles.cancelButtonText}>Cancel</Text>
@@ -151,9 +151,9 @@ const SelectRhyde = () => {
           >
             <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
               <Entypo name="wallet" size={24} color="white" />
-              <Text style={styles.modalOptionText}>{method.name}</Text>
+              <Text style={styles.modalOptionText}>{method?.id==4?"Gift Cards":selectedPaymentMethod?.id==2 ?"Paypal" : method.name}</Text>
             </View>
-            {selectedPaymentMethod && selectedPaymentMethod.id === method.id && (
+            {selectedPaymentMethod && selectedPaymentMethod?.id === method?.id && (
               <AntDesign name="checkcircle" size={20} color="#FFD700" />
             )}
           </TouchableOpacity>

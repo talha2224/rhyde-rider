@@ -157,7 +157,7 @@ const Home = () => {
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.cardScroll}>
             {availableDriver.map((i) => (
-              <View key={i} style={[styles.rydeCard, { backgroundColor: '#FBB73A' }]}>
+              <View key={i?.driver?._id} style={[styles.rydeCard, { backgroundColor: '#FBB73A' }]}>
                 <Image source={{ uri: i?.driver?.front_view_img }} style={styles.rydeImage} />
                 <View style={styles.rydeDetails}>
                   <Text style={styles.rydeName}>{i?.driver?.make} {i?.driver?.model}</Text>
@@ -209,9 +209,9 @@ const Home = () => {
             />
           </View>
           {suggestions.length > 0 &&
-            suggestions.map((item) => (
+            suggestions.map((item,indx) => (
               <TouchableOpacity
-                key={item.place_id}
+                key={indx+199}
                 onPress={() => handleSuggestionSelect(item)}
                 style={{ padding: 10, backgroundColor: '#1C1A1B', borderBottomWidth: 1, borderBottomColor: 'gray' }}
               >

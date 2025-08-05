@@ -138,7 +138,7 @@ const SelectRhydes = () => {
     if (!socket) return;
 
     socket.on("bookingAccepted", (booking) => {
-      console.log(booking?.paymentMethod,'bookingData?.paymentMethod')
+      console.log(booking?.paymentMethod, 'bookingData?.paymentMethod')
       Toast.show({
         type: "success",
         text1: "Rhyde accepted your booking",
@@ -206,13 +206,11 @@ const SelectRhydes = () => {
                     <Text style={styles.rydeName}>{ryde?.driver?.name}</Text>
                     <Text style={styles.rydeDistance}>
                       {driverDistanceFromRider !== null
-                        ? `${driverDistanceFromRider} km away`
+                        ? `${driverDistanceFromRider} miles away`
                         : "N/A"}
                     </Text>
                     <Text style={styles.rydePrice}>
-                      {totalRideAmount !== null
-                        ? `$ ${totalRideAmount}`
-                        : "N/A"}
+                      {totalRideAmount !== null ? `$${totalRideAmount}` : "N/A"}
                     </Text>
                   </View>
                 </View>
@@ -220,13 +218,7 @@ const SelectRhydes = () => {
                   <TouchableOpacity style={styles.declineButton}>
                     <Text style={styles.declineButtonText}>Decline</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.acceptButton}
-                    onPress={() => {
-                      setSelectedDriver(ryde);
-                      setShowDriverDetailsModal(true);
-                    }}
-                  >
+                  <TouchableOpacity style={styles.acceptButton} onPress={() => { setSelectedDriver(ryde); setShowDriverDetailsModal(true); }}>
                     <Text style={styles.acceptButtonText}>Send Request</Text>
                   </TouchableOpacity>
                 </View>
@@ -359,13 +351,13 @@ const styles = StyleSheet.create({
   },
   rydeDistance: {
     fontSize: 14,
-    color: "#DDD",
+    color: "#fff",
     marginTop: 2,
   },
   rydePrice: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#FFD700",
+    color: "#fff",
     marginTop: 5,
   },
   buttonContainer: {
@@ -379,20 +371,20 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: "center",
     marginRight: 10,
-    borderWidth: 1,
-    borderColor: "#fff",
+    backgroundColor: "red",
   },
   declineButtonText: {
-    color: "#FFF",
+    color: "white",
     fontSize: 16,
   },
   acceptButton: {
     flex: 1,
-    backgroundColor: "#FFD700",
     padding: 12,
     borderRadius: 10,
     alignItems: "center",
     marginLeft: 10,
+    borderWidth: 1,
+    borderColor: "black",
   },
   acceptButtonText: {
     color: "#1C1A1B",

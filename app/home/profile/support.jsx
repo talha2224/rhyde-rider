@@ -51,7 +51,7 @@ const Support = () => {
           <Image source={supportImg} style={styles.supportImage} />
           <Text style={styles.supportQuestion}>What would you like us to help you with?</Text>
           <Text style={styles.supportHelperText}>
-            Help us improve your experience by letting us know the reason for cancelling this ryde.
+            How can we help you, do you have a question? 95% of question can be answered in the F.A.Q’s below if you can find your questions please send us a message and we will do our best to answer them accordingly
           </Text>
         </View>
 
@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
   supportInfo: {
     alignItems: 'center',
     marginBottom: 30,
-    flex:1
+    flex: 1
   },
   supportImage: {
     width: 60, // Adjust size as needed
@@ -131,10 +131,10 @@ const styles = StyleSheet.create({
   },
   faqItem: {
     paddingVertical: 15,
-    backgroundColor:"#1C1A1B",
-    paddingHorizontal:10,
-    marginBottom:10,
-    borderRadius:10
+    backgroundColor: "#1C1A1B",
+    paddingHorizontal: 10,
+    marginBottom: 10,
+    borderRadius: 10
   },
   faqQuestionContainer: {
     flexDirection: 'row',

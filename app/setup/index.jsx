@@ -13,7 +13,7 @@ import {
 
 const FullName = () => {
     const [fullName, setFullName] = useState('');
-
+    const [refferalCode, setRefferalCode] = useState("")
     const handleGoBack = () => {
         router.back();
     };
@@ -44,6 +44,10 @@ const FullName = () => {
 
                 <View style={styles.inputContainer}>
                     <TextInput style={styles.input} placeholder="Full name" placeholderTextColor="#fff" autoCapitalize="words" value={fullName} onChangeText={setFullName} />
+                </View>
+
+                <View style={[styles.inputContainer,{marginTop:10}]}>
+                    <TextInput style={styles.input} placeholder="Refferal Code ( Optional )" placeholderTextColor="#fff" autoCapitalize="words" value={refferalCode} onChangeText={setRefferalCode} />
                 </View>
 
             </View>

@@ -18,6 +18,23 @@ import BottomNavbar from '../../components/BottomNavbar';
 import Map from '../../components/Map';
 import config from '../../config';
 
+
+// const colorPalette = [
+//   "#FF0000", "#FF0014", "#FF0027", "#FF003B", "#FF004F", "#FF0062", "#FF0076", "#FF008A", "#FF009D", "#FF00B1",
+//   "#0019FF", "#0019FF", "#0049FF", "#0062FF", "#007AFF", "#0092FF", "#00AAFF", "#00C3FF", "#00DBFF", "#00F3FF",
+//   "#00FFBC", "#12FFA7", "#24FF92", "#36FF7D", "#48FF68", "#5AFF54", "#6CFF3F", "#7EFF2A", "#90FF15", "#A2FF00",
+//   "#FFFF00", "#FFEFE0", "#FFE000", "#FFD000", "#FFC100", "#FFB100", "#FFA200", "#FF9200", "#FF8300", "#FF7300",
+// ];
+const colorPalette = [
+  "#FFD700",
+  "#FF0000",
+  "#00C3FF",
+  "#FFA200",
+  "#00FFBC",
+  "#9370DB",
+  "#D3D3D3",
+];
+
 const Home = () => {
   const [user, setUser] = useState(null);
   const [location, setLocation] = useState(null);
@@ -82,6 +99,11 @@ const Home = () => {
     } catch (error) {
       console.error("❌ Failed to update location:", error?.response?.data || error.message);
     }
+  };
+
+  const getRandomColor = () => {
+    const randomIndex = Math.floor(Math.random() * colorPalette.length);
+    return colorPalette[randomIndex];
   };
 
 
@@ -156,8 +178,9 @@ const Home = () => {
             <Text style={styles.sectionTitle}>Top rydes</Text>
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.cardScroll}>
-            {availableDriver.map((i) => (
-              <View key={i?.driver?._id} style={[styles.rydeCard, { backgroundColor: '#FBB73A' }]}>
+            {availableDriver.map((i) => (  
+              
+              <View key={i?.driver?._id} style={[styles.rydeCard, { backgroundColor: getRandomColor()}]}>
                 <Image source={{ uri: i?.driver?.front_view_img }} style={styles.rydeImage} />
                 <View style={styles.rydeDetails}>
                   <Text style={styles.rydeName}>{i?.driver?.make} {i?.driver?.model}</Text>
@@ -169,7 +192,7 @@ const Home = () => {
                     <AntDesign name="staro" size={14} color="#FFD700" />
                     <Text style={styles.reviewCount}>(120 Review)</Text>
                   </View> */}
-                  <Text style={styles.rydePrice}>${i?.driver?.perKmRate}Km</Text>
+                  <Text style={styles.rydePrice}>${i?.driver?.perKmRate}Miles</Text>
                 </View>
               </View>
             ))}
@@ -209,9 +232,9 @@ const Home = () => {
             />
           </View>
           {suggestions.length > 0 &&
-            suggestions.map((item,indx) => (
+            suggestions.map((item, indx) => (
               <TouchableOpacity
-                key={indx+199}
+                key={indx + 199}
                 onPress={() => handleSuggestionSelect(item)}
                 style={{ padding: 10, backgroundColor: '#1C1A1B', borderBottomWidth: 1, borderBottomColor: 'gray' }}
               >
@@ -236,8 +259,8 @@ const Home = () => {
               <View style={styles.historyIconText}>
                 <FontAwesome5 name="store" size={20} color="#FFD700" />
                 <View style={styles.historyDetails}>
-                  <Text numberOfLines={1}  style={styles.historyTitle}>{i?.pickupAddress?.split(" ")[0] +" " + i?.pickupAddress?.split(" ")[1] +" " + i?.pickupAddress?.split(" ")[2] +" " + i?.pickupAddress?.split(" ")[3]}</Text>
-                  <Text style={styles.historyAddress}>{i?.dropOffAddress?.split(" ")[0] +" " + i?.dropOffAddress?.split(" ")[1] +" " + i?.dropOffAddress?.split(" ")[2] +" " + i?.dropOffAddress?.split(" ")[3]}</Text>
+                  <Text numberOfLines={1} style={styles.historyTitle}>{i?.pickupAddress?.split(" ")[0] + " " + i?.pickupAddress?.split(" ")[1] + " " + i?.pickupAddress?.split(" ")[2] + " " + i?.pickupAddress?.split(" ")[3]}</Text>
+                  <Text style={styles.historyAddress}>{i?.dropOffAddress?.split(" ")[0] + " " + i?.dropOffAddress?.split(" ")[1] + " " + i?.dropOffAddress?.split(" ")[2] + " " + i?.dropOffAddress?.split(" ")[3]}</Text>
                 </View>
               </View>
               <Text style={styles.historyPrice}>${i?.fare?.toFixed(2)}</Text>

@@ -92,7 +92,7 @@ const Support = () => {
           <Image source={supportImg} style={styles.supportImage} />
           <Text style={styles.supportQuestion}>What would you like us to help you with?</Text>
           <Text style={styles.supportHelperText}>
-            How can we help you, do you have a question? 95% of question can be answered in the F.A.Q’s below if you can find your questions please send us a message and we will do our best to answer them accordingly
+            How can we help you, do you have a question? 95% of question can be answered in the F.A.Q’s below if you can't find your questions please send us a message and we will do our best to answer them accordingly
           </Text>
         </View>
 

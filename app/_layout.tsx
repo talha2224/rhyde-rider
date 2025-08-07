@@ -97,7 +97,7 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={DarkTheme}>
       <SocketProvider>
-        <StripeProvider publishableKey='pk_live_51Rr17JQrAWYzdbHauVttOVJS4uyM2Mh4TdVHS10DeI2VPkclffHFaGUNhUJLLXV9tQmR6TccgxWfVwDvgqcjOqoY00rnjxvhUB'>
+        <StripeProvider publishableKey='pk_test_51Rr17RJ0wsnsgQqZ1cZUbG1S5KzJQvnneNiuRJjY6gmn4E3ma0rPXQaftYixDVdbuWLZDi3tZQyRzXSpvKdhFec100aVhQpPYM'>
           <Stack screenOptions={{ headerShown: false, animation: "slide_from_right", animationTypeForReplace: "push", contentStyle: { backgroundColor: "rgb(1, 1, 1)" }, }}>
             {screens.map((name) => (
               <Stack.Screen key={name} name={name} />

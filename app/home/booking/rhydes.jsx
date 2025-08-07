@@ -9,18 +9,28 @@ import Toast from "react-native-toast-message";
 import DriverDetailModel from "../../../components/DriverDetailModel";
 import config from "../../../config";
 import { useSocket } from "../../../contexts/SocketContext";
-import { calculateRideDetails, getAddressFromCoordinates, } from "../../../utils/function";
+import { calculateRideDetails, getAddressFromCoordinates } from "../../../utils/function";
 
+const colorPalette = [
+  "#FFD700",
+  "#FF0000",
+  "#00C3FF",
+  "#FFA200",
+  "#00FFBC",
+  "#9370DB",
+  "#D3D3D3",
+];
 
 const SelectRhydes = () => {
   const { getSocket } = useSocket();
   const params = useLocalSearchParams();
   const [paymentMethod, setpaymentMethod] = useState("");
   const [showDriverDetailsModal, setShowDriverDetailsModal] = useState(false);
-  const [riders, setRiders] = useState([]);
+  const [drivers, setDrivers] = useState([]);
   const [userCurrentLocation, setUserCurrentlocation] = useState(null);
   const [selectedDriver, setSelectedDriver] = useState(null);
   const [driverAddress, setDriverAddress] = useState("Loading address...");
+  const [driverColors, setDriverColors] = useState({});
 
   const sendRideRequestToDriver = async () => {
     setShowDriverDetailsModal(false);
@@ -32,7 +42,6 @@ const SelectRhydes = () => {
         autoHide: false,
       });
       const riderId = await AsyncStorage.getItem("userId");
-
       const payload = {
         riderId,
         driverId: selectedDriver?.driver?._id,
@@ -44,14 +53,14 @@ const SelectRhydes = () => {
         pickupAddress: userCurrentLocation?.dropOffLocation?.pickupAddress,
         dropOffAddress: userCurrentLocation?.dropOffLocation?.dropOfAddress,
         isSchedule: false,
-        paymentMethod
+        paymentMethod,
       };
       let res = await axios.post(`${config.baseUrl}/booking`, payload);
       if (res) {
         Toast.hide();
         Toast.show({
           type: "success",
-          text1: "Request Send To Rhyde",
+          text1: "Request Sent To Rhyde",
           text2: "Waiting For Rhyde Confirmation.",
         });
       }
@@ -62,22 +71,20 @@ const SelectRhydes = () => {
 
   const handleStripPayment = async (booking) => {
     try {
-      let userId = await AsyncStorage.getItem('userId');
-      let res = await axios.post(`${config.baseUrl}/payment/create`, { amount: Math.floor(booking?.fare * 100), id: userId })
-      let secret = res?.data?.clientSecret
-      const initResponse = await initPaymentSheet({ merchantDisplayName: booking?.riderId?.name, paymentIntentClientSecret: secret })
+      let userId = await AsyncStorage.getItem("userId");
+      let res = await axios.post(`${config.baseUrl}/payment/create`, { amount: Math.floor(booking?.fare * 100), id: userId });
+      let secret = res?.data?.clientSecret;
+      const initResponse = await initPaymentSheet({ merchantDisplayName: booking?.riderId?.name, paymentIntentClientSecret: secret });
       if (initResponse.error) {
-        Toast.show({ type: "error", text1: "Error", text2: initResponse?.error?.message, });
-        return
-      }
-      else {
-        const paymentResponse = await presentPaymentSheet()
+        Toast.show({ type: "error", text1: "Error", text2: initResponse?.error?.message });
+        return;
+      } else {
+        const paymentResponse = await presentPaymentSheet();
         if (paymentResponse.error) {
-          Toast.show({ type: "error", text1: "Error", text2: paymentResponse?.error?.message, });
-          return
-        }
-        else {
-          let response = await axios.post(`${config.baseUrl}/transaction`, { riderId: booking?.riderId?._id, driverId: booking?.driverId?._id, type: "ride payment", amount: booking?.fare })
+          Toast.show({ type: "error", text1: "Error", text2: paymentResponse?.error?.message });
+          return;
+        } else {
+          let response = await axios.post(`${config.baseUrl}/transaction`, { riderId: booking?.riderId?._id, driverId: booking?.driverId?._id, type: "ride payment", amount: booking?.fare });
           if (response.data.data) {
             router.push({
               pathname: "/home/booking/activebooking",
@@ -86,11 +93,37 @@ const SelectRhydes = () => {
           }
         }
       }
+    } catch (error) {
+      console.log(error, "error in handling stripe payment");
     }
-    catch (error) {
-      console.log(error, 'error in handling stripe payment')
-    }
-  }
+  };
+
+  const getRandomColor = () => {
+    const randomIndex = Math.floor(Math.random() * colorPalette.length);
+    return colorPalette[randomIndex];
+  };
+
+  const hexToRgb = (hex) => {
+    const bigint = parseInt(hex.slice(1), 16);
+    const r = (bigint >> 16) & 255;
+    const g = (bigint >> 8) & 255;
+    const b = bigint & 255;
+    return { r, g, b };
+  };
+
+  const isColorLight = (hexColor) => {
+    const { r, g, b } = hexToRgb(hexColor);
+    const luminance = 0.299 * r + 0.587 * g + 0.114 * b;
+    return luminance > 186;
+  };
+
+  const handleDecline = (driverId) => {
+    const updatedRiders = drivers.filter((ryde) => ryde.driver._id !== driverId);
+    setDrivers(updatedRiders);
+    const updatedColors = { ...driverColors };
+    delete updatedColors[driverId];
+    setDriverColors(updatedColors);
+  };
 
   useEffect(() => {
     if (params?.availableDriver && params?.userLocation && params.paymentMethod) {
@@ -101,9 +134,15 @@ const SelectRhydes = () => {
           ToastAndroid.show("No available rydes", ToastAndroid.SHORT);
           router.back();
         } else {
-          setRiders(availableRider);
+          setDrivers(availableRider);
           setUserCurrentlocation(parsedUserLocation);
-          setpaymentMethod(params?.paymentMethod)
+          setpaymentMethod(params?.paymentMethod);
+          // Assign random colors once
+          const colors = {};
+          availableRider.forEach((d) => {
+            colors[d.driver._id] = getRandomColor();
+          });
+          setDriverColors(colors);
         }
       } catch {
         ToastAndroid.show("Invalid data", ToastAndroid.SHORT);
@@ -138,18 +177,16 @@ const SelectRhydes = () => {
     if (!socket) return;
 
     socket.on("bookingAccepted", (booking) => {
-      console.log(booking?.paymentMethod, 'bookingData?.paymentMethod')
       Toast.show({
         type: "success",
-        text1: "Rhyde accepted your booking",
-        text2: "Have A Safe Journey",
+        text1: "Your Ryde was accepted ",
+        text2: "Have a great ryde",
       });
       if (booking?.paymentMethod === "Credit Debit Card") {
         (async () => {
-          handleStripPayment(booking)
-        })()
-      }
-      else {
+          handleStripPayment(booking);
+        })();
+      } else {
         router.push({
           pathname: "/home/booking/activebooking",
           params: { bookingData: JSON.stringify(booking) },
@@ -157,10 +194,10 @@ const SelectRhydes = () => {
       }
     });
 
-    socket.on("bookingCancelled", (booking) => {
+    socket.on("bookingCancelled", () => {
       Toast.show({
         type: "info",
-        text1: "Rhyde decline your booking",
+        text1: "Rhyde declined your booking",
         text2: "Find a new rhyde",
       });
       router.push("/home");
@@ -175,10 +212,7 @@ const SelectRhydes = () => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => router.back()}
-          style={styles.backButton}
-        >
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <AntDesign name="arrowleft" size={24} color="#FFF" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Choose rydes</Text>
@@ -186,47 +220,43 @@ const SelectRhydes = () => {
 
       <ScrollView style={styles.rydesList}>
         {userCurrentLocation &&
-          riders?.map((ryde, index) => {
-            const { driverDistanceFromRider, totalRideAmount } =
-              calculateRideDetails(
-                ryde.location,
-                userCurrentLocation.currentLocation,
-                userCurrentLocation.dropOffLocation,
-                ryde.driver.perKmRate
-              );
+          drivers?.map((ryde, index) => {
+            const { driverDistanceFromRider, totalRideAmount } = calculateRideDetails(
+              ryde.location,
+              userCurrentLocation.currentLocation,
+              userCurrentLocation.dropOffLocation,
+              ryde.driver.perKmRate
+            );
+
+            const bgColor = driverColors[ryde.driver._id] || "#FFD700";
+            const isLight = isColorLight(bgColor);
+
             return (
-              <View key={index} style={styles.rydeCard}>
+              <View key={index} style={[styles.rydeCard, { backgroundColor: bgColor }]}>
                 <View style={styles.rydeCardContent}>
-                  <Image
-                    source={{ uri: ryde?.driver?.front_view_img }}
-                    style={styles.carImage}
-                    resizeMode="contain"
-                  />
+                  <Image source={{ uri: ryde?.driver?.front_view_img }} style={styles.carImage} resizeMode="contain" />
                   <View style={styles.rydeDetails}>
-                    <Text style={styles.rydeName}>{ryde?.driver?.name}</Text>
-                    <Text style={styles.rydeDistance}>
-                      {driverDistanceFromRider !== null
-                        ? `${driverDistanceFromRider} miles away`
-                        : "N/A"}
+                    <Text style={[styles.rydeName, { color: isLight ? "#000" : "#FFF" }]}>{ryde?.driver?.name}</Text>
+                    <Text style={{ color: isLight ? "#333" : "#fff", fontSize: 14, marginTop: 2 }}>
+                      {driverDistanceFromRider !== null ? `${driverDistanceFromRider} miles away` : "N/A"}
                     </Text>
-                    <Text style={styles.rydePrice}>
+                    <Text style={[styles.rydePrice, { color: isLight ? "#000" : "#FFF" }]}>
                       {totalRideAmount !== null ? `$${totalRideAmount}` : "N/A"}
                     </Text>
                   </View>
                 </View>
                 <View style={styles.buttonContainer}>
-                  <TouchableOpacity style={styles.declineButton}>
+                  <TouchableOpacity onPress={() => handleDecline(ryde?.driver?._id)} style={styles.declineButton}>
                     <Text style={styles.declineButtonText}>Decline</Text>
                   </TouchableOpacity>
                   <TouchableOpacity style={styles.acceptButton} onPress={() => { setSelectedDriver(ryde); setShowDriverDetailsModal(true); }}>
-                    <Text style={styles.acceptButtonText}>Send Request</Text>
+                    <Text style={[styles.acceptButtonText, { color: isLight ? "#000" : "#1C1A1B" }]}>Send Request</Text>
                   </TouchableOpacity>
                 </View>
               </View>
             );
           })}
       </ScrollView>
-
       <DriverDetailModel
         visible={showDriverDetailsModal}
         onClose={() => setShowDriverDetailsModal(false)}
@@ -300,6 +330,7 @@ const SelectRhydes = () => {
     </View>
   );
 };
+
 
 const styles = StyleSheet.create({
   container: {

@@ -4,7 +4,9 @@
 // }
 const config = {
     baseUrl:"https://urchin-app-b84cb.ondigitalocean.app/api/v1",
-    socketUrl:"https://urchin-app-b84cb.ondigitalocean.app"
+    socketUrl:"https://urchin-app-b84cb.ondigitalocean.app",
+    fbAppId:"650105494778135",
+    fbAppSecret:"e3b06f51c2aad95204464f596ca86723"
 }
 
 export default config
